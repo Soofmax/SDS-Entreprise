@@ -1,0 +1,321 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle User pour l'authentification
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations NextAuth
+  accounts Account[]
+  sessions Session[]
+  
+  // Relations business
+  contacts  Contact[]
+  projects  Project[]
+  
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Modèles business pour SDS
+model Contact {
+  id          String      @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  company     String?
+  message     String      @db.Text
+  projectType ProjectType
+  budget      Int?
+  timeline    String?
+  status      ContactStatus @default(NEW)
+  source      String?     // D'où vient le contact
+  
+  // Métadonnées
+  ipAddress   String?
+  userAgent   String?
+  referrer    String?
+  
+  // Relations
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id])
+  project     Project?
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("contacts")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  description String        @db.Text
+  status      ProjectStatus @default(PLANNING)
+  type        ProjectType
+  
+  // Informations client
+  contactId   String        @unique
+  contact     Contact       @relation(fields: [contactId], references: [id])
+  
+  // Informations projet
+  budget      Int
+  timeline    Int           // en jours
+  startDate   DateTime?
+  endDate     DateTime?
+  deliveryDate DateTime?
+  
+  // Détails techniques
+  technologies String[]      // ["Next.js", "Tailwind", "Stripe"]
+  features     String[]      // ["E-commerce", "Blog", "Analytics"]
+  
+  // URLs et ressources
+  repositoryUrl String?
+  stagingUrl    String?
+  productionUrl String?
+  
+  // Progression
+  progress     Int           @default(0) // Pourcentage 0-100
+  tasks        ProjectTask[]
+  
+  // Relations
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  testimonial  Testimonial?
+  invoices     Invoice[]
+  
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("projects")
+}
+
+model ProjectTask {
+  id          String      @id @default(cuid())
+  title       String
+  description String?     @db.Text
+  status      TaskStatus  @default(TODO)
+  priority    Priority    @default(MEDIUM)
+  
+  // Temps estimé vs réel
+  estimatedHours Int?
+  actualHours    Int?
+  
+  // Relations
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  completedAt DateTime?
+
+  @@map("project_tasks")
+}
+
+model Testimonial {
+  id        String  @id @default(cuid())
+  name      String
+  company   String?
+  position  String?
+  content   String  @db.Text
+  rating    Int     @default(5) // 1-5 étoiles
+  avatar    String?
+  
+  // Relations
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id])
+  
+  // Visibilité
+  isPublic  Boolean @default(false)
+  featured  Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonials")
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  number      String        @unique // INV-2024-001
+  status      InvoiceStatus @default(DRAFT)
+  
+  // Montants
+  subtotal    Int           // en centimes
+  taxRate     Int           @default(2000) // 20.00% = 2000
+  taxAmount   Int
+  total       Int
+  
+  // Dates
+  issueDate   DateTime      @default(now())
+  dueDate     DateTime
+  paidDate    DateTime?
+  
+  // Relations
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id])
+  
+  // Paiement Stripe
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("invoices")
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  event     String   // 'page_view', 'form_submit', etc.
+  page      String
+  
+  // Données de session
+  sessionId String
+  userId    String?
+  
+  // Métadonnées
+  properties Json?    // Données flexibles
+  userAgent  String?
+  ipAddress  String?
+  referrer   String?
+  
+  createdAt DateTime @default(now())
+
+  @@map("analytics")
+}
+
+model Newsletter {
+  id          String            @id @default(cuid())
+  email       String            @unique
+  status      NewsletterStatus  @default(SUBSCRIBED)
+  source      String?           // D'où vient l'inscription
+  tags        String[]          // Segmentation
+  
+  subscribedAt   DateTime       @default(now())
+  unsubscribedAt DateTime?
+
+  @@map("newsletter")
+}
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+  EDITOR
+}
+
+enum ContactStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATING
+  WON
+  LOST
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  DELIVERED
+  CANCELLED
+}
+
+enum ProjectType {
+  SITE_VITRINE
+  ECOMMERCE
+  LANDING_PAGE
+  BLOG
+  PORTFOLIO
+  APPLICATION
+  WEB3
+  MOBILE
+  OTHER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum NewsletterStatus {
+  SUBSCRIBED
+  UNSUBSCRIBED
+  BOUNCED
+}
