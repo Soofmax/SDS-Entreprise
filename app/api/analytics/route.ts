@@ -148,6 +148,11 @@ export async function GET(request: NextRequest) {
         _count: {
           id: true,
         },
+        orderBy: {
+          _count: {
+            id: 'desc',
+          },
+        },
         take: 10,
       });
 
