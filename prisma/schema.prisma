@@ -253,6 +253,21 @@ model Newsletter {
   @@map("newsletter")
 }
 
+// Logs d'erreurs applicatives
+model ErrorLog {
+  id        String   @id @default(cuid())
+  code      String
+  message   String
+  severity  String
+  details   Json?
+  userAgent String?
+  ipAddress String?
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@map("error_logs")
+}
+
 // Enums
 enum Role {
   USER
