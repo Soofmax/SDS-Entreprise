@@ -140,8 +140,9 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
+    // NextAuth v4 doesn't support a "signUp" page option. Keep custom signup route outside NextAuth.
     error: '/auth/error',
+    // Other supported options (if needed): signOut, verifyRequest, newUser
   },
 
   events: {
