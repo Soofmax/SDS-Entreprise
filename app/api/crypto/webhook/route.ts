@@ -122,27 +122,34 @@ async function handleChargeConfirmed(charge: any) {
       data: { status: 'PAID', paidDate: new Date() }
     });
 
-    // Create or update contact
+    // Create or update contact (email is not unique in schema => manual upsert)
     let contactId: string | null = null;
     if (customerEmail) {
-      const contact = await prisma.contact.upsert({
-        where: { email: customerEmail },
-        update: {
-          status: 'WON',
-          ...(customerName ? { name: customerName } : {}),
-          source: 'CRYPTO_PAYMENT'
-        },
-        create: {
-          name: customerName || 'Client Crypto',
-          email: customerEmail,
-          message: `Commande ${packageType || ''} payée via crypto`,
-          projectType: mapPackageToProjectType(packageType) as any,
-          budget: amountFloat ? Math.round(amountFloat) : 0,
-          status: 'WON',
-          source: 'CRYPTO_PAYMENT'
-        }
-      });
-      contactId = contact.id;
+      const existing = await prisma.contact.findFirst({ where: { email: customerEmail } });
+      if (existing) {
+        const updated = await prisma.contact.update({
+          where: { id: existing.id },
+          data: {
+            status: 'WON',
+            ...(customerName ? { name: customerName } : {}),
+            source: 'CRYPTO_PAYMENT'
+          }
+        });
+        contactId = updated.id;
+      } else {
+        const created = await prisma.contact.create({
+          data: {
+            name: customerName || 'Client Crypto',
+            email: customerEmail,
+            message: `Commande ${packageType || ''} payée via crypto`,
+            projectType: mapPackageToProjectType(packageType) as any,
+            budget: amountFloat ? Math.round(amountFloat) : 0,
+            status: 'WON',
+            source: 'CRYPTO_PAYMENT'
+          }
+        });
+        contactId = created.id;
+      }
     }
 
     // Create project and invoice if we have an admin user and contact

@@ -7,6 +7,12 @@ import type { Contact as PrismaContact } from '@prisma/client';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+async function getAdminUserId(): Promise<string | null> {
+  if (process.env.ADMIN_USER_ID) return process.env.ADMIN_USER_ID;
+  const admin = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  return admin?.id || null;
+}
+
 // POST /api/stripe/webhook - Gérer les webhooks Stripe
 export async function POST(request: NextRequest) {
   try {
@@ -88,25 +94,38 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       return;
     }
 
-    // Mettre à jour le contact existant ou en créer un nouveau
-    const contact: PrismaContact = await prisma.contact.upsert({
-      where: { email: customerEmail },
-      update: {
-        status: 'WON',
-        ...(customerName ? { name: customerName } : {}),
-      },
-      create: {
-        name: customerName || 'Client Stripe',
-        email: customerEmail,
-        phone: session.customer_details?.phone || '',
-        company: session.metadata?.company || '',
-        message: `Commande ${packageName} payée via Stripe`,
-        projectType: (session.metadata?.project_type as any) || 'SITE_VITRINE',
-        budget: session.amount_total ? session.amount_total / 100 : 0,
-        status: 'WON',
-        source: 'stripe_payment',
-      },
-    });
+    // Mettre à jour le contact existant ou en créer un nouveau (email non unique => upsert manuel)
+    let contact: PrismaContact;
+    const existing = await prisma.contact.findFirst({ where: { email: customerEmail } });
+    if (existing) {
+      contact = await prisma.contact.update({
+        where: { id: existing.id },
+        data: {
+          status: 'WON',
+          ...(customerName ? { name: customerName } : {}),
+        },
+      });
+    } else {
+      contact = await prisma.contact.create({
+        data: {
+          name: customerName || 'Client Stripe',
+          email: customerEmail,
+          phone: session.customer_details?.phone || '',
+          company: session.metadata?.company || '',
+          message: `Commande ${packageName} payée via Stripe`,
+          projectType: (session.metadata?.project_type as any) || 'SITE_VITRINE',
+          budget: session.amount_total ? session.amount_total / 100 : 0,
+          status: 'WON',
+          source: 'stripe_payment',
+        },
+      });
+    }
+
+    const adminUserId = await getAdminUserId();
+    if (!adminUserId) {
+      console.warn('No admin user found; skipping project/invoice creation for Stripe checkout.');
+      return;
+    }
 
     // Créer automatiquement un projet
     const project = await prisma.project.create({
@@ -123,7 +142,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           : packageId === 'professionnel'
           ? ['CMS', 'Réservation', 'Analytics', 'SEO']
           : ['Design responsive', 'SEO', 'Contact'],
-        userId: 'admin-user-id', // TODO: Récupérer l'ID admin
+        userId: adminUserId,
       },
     });
 
