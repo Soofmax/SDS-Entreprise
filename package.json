@@ -26,7 +26,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "analyze": "cross-env ANALYZE=true next build",
-    "prepare": "sh -c 'if [ \"$CI\" = \"true\" ]; then echo \"Skip husky on CI\"; else husky install; fi'",
+    "prepare": "sh -c 'if [ \"$CI\" = \"true\" ] || [ \"$HUSKY\" = \"0\" ]; then echo \"Skip husky on CI\"; else husky install; fi'",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "security:audit": "npm audit",

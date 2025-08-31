@@ -6,6 +6,7 @@
   [build.environment]
     NODE_VERSION = "20"
     NEXT_TELEMETRY_DISABLED = "1"
+    HUSKY = "0" # hard-disable husky on Netlify builds to avoid prepare failures
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
