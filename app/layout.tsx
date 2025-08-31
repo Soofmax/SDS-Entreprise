@@ -2,7 +2,6 @@
 
 import './globals.css';
 import type { Metadata } from 'next';
-import { Playfair_Display, Montserrat } from 'next/font/google';
 import { Providers } from './providers';
 import { Toaster } from 'sonner';
 import { Header } from '@/components/layout/Header';
@@ -14,19 +13,6 @@ import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import EventTracker from '@/components/analytics/EventTracker';
 import CookieBannerNew from '@/components/cookies/CookieBanner';
 import { cn } from '@/lib/utils'; // <-- 2. Importer l'utilitaire de classes
-
-// Définition des polices
-const playfair = Playfair_Display({ 
-  subsets: ['latin'],
-  variable: '--font-playfair',
-  display: 'swap', // Améliore les performances de chargement des polices
-});
-
-const montserrat = Montserrat({ 
-  subsets: ['latin'],
-  variable: '--font-montserrat',
-  display: 'swap', // Améliore les performances de chargement des polices
-});
 
 // 3. Métadonnées enrichies pour un meilleur SEO
 export const metadata: Metadata = {
@@ -86,12 +72,17 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning> {/* suppressHydrationWarning est utile avec next-themes */}
       <head>
         <GoogleAnalytics />
+        {/* Chargement des polices via Google Fonts au runtime (pas au build) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body 
         className={cn(
-          "bg-cream text-charcoal font-montserrat antialiased", // <-- 4. Classes plus propres
-          playfair.variable, 
-          montserrat.variable
+          "bg-cream text-charcoal font-montserrat antialiased" // <-- 4. Classes plus propres
         )}
       >
         <AccessibilityProvider>
