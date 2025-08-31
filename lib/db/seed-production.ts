@@ -35,7 +35,7 @@ async function seedProduction() {
         message: 'Projet de démonstration pour le portfolio',
         projectType: ProjectType.SITE_VITRINE,
         budget: 4200,
-        status: ContactStatus.COMPLETED,
+        status: ContactStatus.WON,
         source: 'demo_data',
       },
       {
@@ -61,15 +61,15 @@ async function seedProduction() {
         },
       });
 
-      // Créer un projet pour les contacts gagnés/terminés
-      if (contact.status === ContactStatus.WON || contact.status === ContactStatus.COMPLETED) {
+      // Créer un projet pour les contacts gagnés
+      if (contact.status === ContactStatus.WON) {
         const project = await prisma.project.upsert({
           where: { contactId: contact.id },
           update: {},
           create: {
             title: `Projet ${contact.company}`,
             description: `Projet de démonstration pour ${contact.company}`,
-            status: contact.status === ContactStatus.COMPLETED ? ProjectStatus.DELIVERED : ProjectStatus.IN_PROGRESS,
+            status: ProjectStatus.DELIVERED,
             type: contact.projectType,
             contactId: contact.id,
             budget: contact.budget || 5000,
@@ -77,7 +77,7 @@ async function seedProduction() {
             startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
             technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Prisma'],
             features: ['Design responsive', 'SEO optimisé', 'Analytics'],
-            progress: contact.status === ContactStatus.COMPLETED ? 100 : 75,
+            progress: 100,
             userId: admin.id,
           },
         });
@@ -99,7 +99,7 @@ async function seedProduction() {
           {
             title: 'Développement',
             description: 'Développement des fonctionnalités',
-            status: contact.status === ContactStatus.COMPLETED ? TaskStatus.DONE : TaskStatus.IN_PROGRESS,
+            status: TaskStatus.DONE,
             priority: Priority.HIGH,
           },
         ];
