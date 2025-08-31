@@ -6,9 +6,9 @@ export interface ValidationRule<T = any> {
   message: string;
 }
 
-export interface ValidationSchema<T> {
+export type ValidationSchema<T> = {
   [K in keyof T]?: ValidationRule<T[K]>[];
-}
+};
 
 export interface ValidationResult {
   isValid: boolean;
