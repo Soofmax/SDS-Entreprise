@@ -55,21 +55,39 @@ export async function POST(request: NextRequest) {
   }
 }
 
+function mapPackageToProjectType(pkg?: string) {
+  switch (pkg) {
+    case 'BOUTIQUE':
+      return 'ECOMMERCE';
+    case 'ESSENTIEL':
+    case 'PROFESSIONNEL':
+      return 'SITE_VITRINE';
+    default:
+      return 'OTHER';
+  }
+}
+
+async function getAdminUserId(): Promise<string | null> {
+  if (process.env.ADMIN_USER_ID) return process.env.ADMIN_USER_ID;
+  const admin = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  return admin?.id || null;
+}
+
 async function handleChargeCreated(charge: any) {
   try {
     // Log charge creation
     console.log(`Crypto charge created: ${charge.id}`);
 
     const amountFloat = parseFloat(charge?.pricing?.local?.amount);
-    const amountCents = isNaN(amountFloat) ? 0 : Math.round(amountFloat * 100);
     const currency = charge?.pricing?.local?.currency;
 
-    // Enregistrer un évènement analytics compatible avec le schéma actuel
-    await prisma.analytics.create({
+    // Log event in AnalyticsEvent (standardized)
+    await prisma.analyticsEvent.create({
       data: {
-        event: 'crypto_charge_created',
-        page: '/api/crypto/webhook',
+        name: 'crypto_charge_created',
+        category: 'payment',
         sessionId: charge.id,
+        page: '/api/crypto/webhook',
         properties: {
           coinbaseChargeId: charge.id,
           packageType: charge?.metadata?.package,
@@ -82,8 +100,6 @@ async function handleChargeCreated(charge: any) {
       }
     });
 
-    // Invoice creation deferred until a related Project exists (project relation is required by schema)
-
   } catch (error) {
     console.error('Error handling charge created:', error);
   }
@@ -93,29 +109,115 @@ async function handleChargeConfirmed(charge: any) {
   try {
     console.log(`Crypto payment confirmed: ${charge.id}`);
     
-    // Update invoice status (si une facture correspondante existe)
+    const amountFloat = parseFloat(charge?.pricing?.local?.amount);
+    const amountCents = isNaN(amountFloat) ? 0 : Math.round(amountFloat * 100);
+    const currency = charge?.pricing?.local?.currency;
+    const packageType = charge?.metadata?.package as string | undefined;
+    const customerEmail = charge?.metadata?.customer_email as string | undefined;
+    const customerName = charge?.metadata?.customer_name as string | undefined;
+
+    // Update any existing invoice to PAID
     await prisma.invoice.updateMany({
-      where: {
-        stripeInvoiceId: charge.id
-      },
-      data: {
-        status: 'PAID',
-        paidDate: new Date()
-      }
+      where: { stripeInvoiceId: charge.id },
+      data: { status: 'PAID', paidDate: new Date() }
     });
+
+    // Create or update contact
+    let contactId: string | null = null;
+    if (customerEmail) {
+      const contact = await prisma.contact.upsert({
+        where: { email: customerEmail },
+        update: {
+          status: 'WON',
+          ...(customerName ? { name: customerName } : {}),
+          source: 'CRYPTO_PAYMENT'
+        },
+        create: {
+          name: customerName || 'Client Crypto',
+          email: customerEmail,
+          message: `Commande ${packageType || ''} payée via crypto`,
+          projectType: mapPackageToProjectType(packageType) as any,
+          budget: amountFloat ? Math.round(amountFloat) : 0,
+          status: 'WON',
+          source: 'CRYPTO_PAYMENT'
+        }
+      });
+      contactId = contact.id;
+    }
+
+    // Create project and invoice if we have an admin user and contact
+    const adminUserId = await getAdminUserId();
+    if (adminUserId && contactId) {
+      // Project upsert based on unique contactId
+      const project = await prisma.project.upsert({
+        where: { contactId: contactId },
+        update: {
+          status: 'IN_PROGRESS',
+          budget: amountFloat ? Math.round(amountFloat) : 0
+        },
+        create: {
+          title: `${packageType || 'Package'} - ${customerName || 'Client Crypto'}`,
+          description: `Projet créé depuis un paiement crypto confirmé (Coinbase).`,
+          type: mapPackageToProjectType(packageType) as any,
+          contactId: contactId,
+          budget: amountFloat ? Math.round(amountFloat) : 0,
+          timeline: packageType === 'ESSENTIEL' ? 10 : packageType === 'PROFESSIONNEL' ? 14 : 21,
+          technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Prisma'],
+          features: packageType === 'BOUTIQUE' 
+            ? ['E-commerce', 'Gestion stocks', 'Paiements', 'Analytics']
+            : packageType === 'PROFESSIONNEL'
+            ? ['CMS', 'Réservation', 'Analytics', 'SEO']
+            : ['Design responsive', 'SEO', 'Contact'],
+          userId: adminUserId
+        }
+      });
+
+      // Upsert invoice by unique number
+      const invoiceNumber = `CB-${charge.id}`;
+      await prisma.invoice.upsert({
+        where: { number: invoiceNumber },
+        update: {
+          status: 'PAID',
+          paidDate: new Date(),
+          total: amountCents,
+          taxAmount: 0,
+          subtotal: amountCents
+        },
+        create: {
+          number: invoiceNumber,
+          projectId: project.id,
+          subtotal: amountCents,
+          taxRate: 0,
+          taxAmount: 0,
+          total: amountCents,
+          status: 'PAID',
+          paidDate: new Date(),
+          stripeInvoiceId: charge.id,
+          dueDate: new Date()
+        }
+      });
+    } else {
+      if (!adminUserId) {
+        console.warn('No admin user found; skipping project/invoice creation for crypto payment.');
+      }
+      if (!contactId) {
+        console.warn('No contact email provided; skipping project/invoice creation for crypto payment.');
+      }
+    }
 
     const payment = charge?.payments?.[0];
 
-    // Journaliser l'évènement dans la table analytics conforme au schéma courant
-    await prisma.analytics.create({
+    // Log confirmed payment
+    await prisma.analyticsEvent.create({
       data: {
-        event: 'crypto_payment_confirmed',
-        page: '/api/crypto/webhook',
+        name: 'crypto_payment_confirmed',
+        category: 'payment',
         sessionId: charge.id,
+        page: '/api/crypto/webhook',
         properties: {
-          packageType: charge?.metadata?.package,
-          amount: parseFloat(charge?.pricing?.local?.amount),
-          currency: charge?.pricing?.local?.currency,
+          packageType,
+          amount: amountFloat,
+          currency,
           cryptoCurrency: payment?.value?.crypto?.currency,
           cryptoAmount: payment?.value?.crypto?.amount,
           transactionHash: payment?.transaction_id,
@@ -133,7 +235,7 @@ async function handleChargeFailed(charge: any) {
   try {
     console.log(`Crypto payment failed: ${charge.id}`);
     
-    // Update invoice status
+    // Update invoice status if exists
     await prisma.invoice.updateMany({
       where: {
         stripeInvoiceId: charge.id
@@ -143,12 +245,13 @@ async function handleChargeFailed(charge: any) {
       }
     });
 
-    // Journaliser l'évènement d'échec
-    await prisma.analytics.create({
+    // Log failure
+    await prisma.analyticsEvent.create({
       data: {
-        event: 'crypto_payment_failed',
-        page: '/api/crypto/webhook',
+        name: 'crypto_payment_failed',
+        category: 'payment',
         sessionId: charge.id,
+        page: '/api/crypto/webhook',
         properties: {
           packageType: charge?.metadata?.package,
           amount: parseFloat(charge?.pricing?.local?.amount),
@@ -168,14 +271,13 @@ async function handleChargeDelayed(charge: any) {
   try {
     console.log(`Crypto payment delayed: ${charge.id}`);
     
-    // Update invoice status
+    // Reflect delayed as SENT (in-progress) if invoice exists
     await prisma.invoice.updateMany({
       where: {
         stripeInvoiceId: charge.id
       },
       data: {
         status: 'SENT'
-     
       }
     });
 
@@ -188,7 +290,6 @@ async function handleChargePending(charge: any) {
   try {
     console.log(`Crypto payment pending: ${charge.id}`);
     
-    // Update invoice status
     await prisma.invoice.updateMany({
       where: {
         stripeInvoiceId: charge.id
@@ -215,33 +316,12 @@ async function sendCryptoPaymentConfirmation(data: {
 }) {
   try {
     // Send email confirmation
-    // This would integrate with your email service (Resend, etc.)
+    // Integrate with email service as needed
     console.log('Sending crypto payment confirmation email to:', data.email);
-    
-    // Example email content
-    const emailContent = `
-      Bonjour ${data.name || 'Client'},
-      
-      Votre paiement crypto a été confirmé avec succès !
-      
-      Détails de la commande :
-      - Package : ${data.packageType}
-      - Montant : ${data.amount} ${data.currency}
-      - Crypto payée : ${data.cryptoAmount} ${data.cryptoCurrency}
-      - Transaction : ${data.transactionHash}
-      
-      Nous allons commencer votre projet dans les plus brefs délais.
-      
-      Cordialement,
-      L'équipe SDS
-    `;
-
-    // Here you would call your email service
-    // await emailService.send({
-    //   to: data.email,
-    //   subject: 'Confirmation de paiement crypto - SDS',
-    //   text: emailContent
-    // });
+  } catch (error) {
+    console.error('Error sending confirmation email:', error);
+  }
+});
 
   } catch (error) {
     console.error('Error sending confirmation email:', error);
