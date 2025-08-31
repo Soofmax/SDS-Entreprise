@@ -65,8 +65,9 @@ export function useConsentTracking() {
 }
 
 // Déclaration globale pour informer TypeScript de l'existence de `window.gtag`
+// Doit être identique à la déclaration de lib/analytics/gtag.ts pour éviter les conflits
 declare global {
   interface Window {
-    gtag?: (type: 'event', eventName: string, data?: Record<string, any>) => void;
+    gtag: (...args: any[]) => void;
   }
 }
