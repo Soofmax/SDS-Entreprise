@@ -120,7 +120,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.active = user.active;
+        token.active = user.active ?? true;
       }
 
       // Vérifier si l'utilisateur est toujours actif
@@ -132,14 +132,18 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!dbUser || !dbUser.active) {
-            return null; // Force la déconnexion
+            // Ne pas retourner null (incompatible avec Awaitable<JWT>)
+            // On marque le token comme inactif et on laisse la session callback le refuser
+            token.active = false;
+            return token;
           }
 
           token.active = dbUser.active;
           token.role = dbUser.role;
         } catch (error) {
           console.error('Erreur vérification utilisateur:', error);
-          return null;
+          token.active = false;
+          return token;
         }
       }
 
@@ -147,10 +151,14 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
+      // Si l'utilisateur est marqué inactif, invalider la session
+      if (token?.active === false) {
+        return null;
+      }
       if (token) {
         session.user.id = token.id;
         session.user.role = token.role;
-        session.user.active = token.active;
+        session.user.active = token.active ?? true;
       }
       return session;
     },
