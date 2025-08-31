@@ -202,7 +202,16 @@ class Web3WalletService {
       throw new Error('Wallet not connected');
     }
 
-    const currency = CRYPTO_CONFIG.SUPPORTED_CURRENCIES[payment.currency];
+    // Only ERC-20 stablecoins are supported here
+    if (payment.currency !== 'USDC' && payment.currency !== 'USDT') {
+      throw new Error(`${payment.currency} is not supported for token payments`);
+    }
+
+    const currency = CRYPTO_CONFIG.SUPPORTED_CURRENCIES[payment.currency] as {
+      decimals: number;
+      contract: string;
+    };
+
     if (!currency.contract) {
       throw new Error(`${payment.currency} contract not configured`);
     }
