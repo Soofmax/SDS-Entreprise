@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db/prisma';
+import { Role } from '@prisma/client';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -147,27 +148,34 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
 };
 
-// Types pour TypeScript
+// Types pour TypeScript (alignés avec lib/auth/config.ts)
 declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
       email: string;
-      name?: string;
+      name: string;
+      role: Role;
+      active: boolean;
       image?: string;
-      role: string;
     };
   }
 
   interface User {
-    role: string;
+    id: string;
+    email: string;
+    name: string;
+    role: Role;
+    active: boolean;
+    image?: string | null;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    role: string;
     id: string;
+    role: Role;
+    active: boolean;
   }
 }
 
