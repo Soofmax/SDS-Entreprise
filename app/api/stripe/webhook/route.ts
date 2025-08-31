@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe/config';
 import { prisma } from '@/lib/db/prisma';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
+import type { Contact as PrismaContact } from '@prisma/client';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -88,11 +89,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
 
     // Mettre à jour le contact existant ou en créer un nouveau
-    const contact = await prisma.contact.upsert({
+    const contact: PrismaContact = await prisma.contact.upsert({
       where: { email: customerEmail },
       update: {
         status: 'WON',
-        name: customerName || contact.name,
+        ...(customerName ? { name: customerName } : {}),
       },
       create: {
         name: customerName || 'Client Stripe',
