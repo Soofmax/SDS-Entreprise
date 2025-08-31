@@ -60,6 +60,10 @@ async function handleChargeCreated(charge: any) {
     // Log charge creation
     console.log(`Crypto charge created: ${charge.id}`);
 
+    const amountFloat = parseFloat(charge?.pricing?.local?.amount);
+    const amountCents = isNaN(amountFloat) ? 0 : Math.round(amountFloat * 100);
+    const currency = charge?.pricing?.local?.currency;
+
     // Enregistrer un évènement analytics compatible avec le schéma actuel
     await prisma.analytics.create({
       data: {
@@ -71,9 +75,33 @@ async function handleChargeCreated(charge: any) {
           packageType: charge?.metadata?.package,
           customerEmail: charge?.metadata?.customer_email,
           customerName: charge?.metadata?.customer_name,
-          amount: parseFloat(charge?.pricing?.local?.amount),
-          currency: charge?.pricing?.local?.currency,
+          amount: amountFloat,
+          currency,
           provider: 'coinbase_commerce'
+        }
+      }
+    });
+
+    // Créer une facture minimale associée à ce paiement
+    await prisma.invoice.create({
+      data: {
+        number: `CB-${charge.id}`,
+        status: 'PENDING',
+        subtotal: amountCents,
+        taxRate: 0,
+        taxAmount: 0,
+        total: amountCents,
+        amount: amountCents,
+        currency,
+        paymentMethod: 'CRYPTO',
+        dueDate: new Date(), // échéance immédiate par défaut
+        stripeInvoiceId: charge.id,
+        metadata: {
+          coinbaseChargeId: charge.id,
+          packageType: charge?.metadata?.package,
+          customerEmail: charge?.metadata?.customer_email,
+          customerName: charge?.metadata?.customer_name,
+          paymentType: 'coinbase_commerce'
         }
       }
     });
@@ -93,7 +121,8 @@ async function handleChargeConfirmed(charge: any) {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'PAID'
+        status: 'PAID',
+        paidDate: new Date()
       }
     });
 
@@ -132,7 +161,7 @@ async function handleChargeFailed(charge: any) {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'CANCELLED'
+        status: 'FAILED'
       }
     });
 
@@ -167,7 +196,7 @@ async function handleChargeDelayed(charge: any) {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'SENT'
+        status: 'PROCESSING'
       }
     });
 
@@ -186,7 +215,7 @@ async function handleChargePending(charge: any) {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'SENT'
+        status: 'PENDING'
       }
     });
 
