@@ -82,27 +82,17 @@ async function handleChargeCreated(charge: any) {
       }
     });
 
-    // Créer une facture minimale associée à ce paiement
+    // Créer une facture minimale associée à ce paiement (alignée avec le schéma Prisma)
     await prisma.invoice.create({
       data: {
         number: `CB-${charge.id}`,
-        status: 'PENDING',
+        status: 'SENT',
         subtotal: amountCents,
         taxRate: 0,
         taxAmount: 0,
         total: amountCents,
-        amount: amountCents,
-        currency,
-        paymentMethod: 'CRYPTO',
         dueDate: new Date(), // échéance immédiate par défaut
-        stripeInvoiceId: charge.id,
-        metadata: {
-          coinbaseChargeId: charge.id,
-          packageType: charge?.metadata?.package,
-          customerEmail: charge?.metadata?.customer_email,
-          customerName: charge?.metadata?.customer_name,
-          paymentType: 'coinbase_commerce'
-        }
+        stripeInvoiceId: charge.id
       }
     });
 
@@ -161,7 +151,7 @@ async function handleChargeFailed(charge: any) {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'FAILED'
+        status: 'CANCELLED'
       }
     });
 
@@ -196,7 +186,8 @@ async function handleChargeDelayed(charge: any) {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'PROCESSING'
+        status: 'SENT'
+     
       }
     });
 
@@ -215,7 +206,7 @@ async function handleChargePending(charge: any) {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'PENDING'
+        status: 'SENT'
       }
     });
 
