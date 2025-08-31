@@ -1,42 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
+import { prisma } from './prisma';
 
-// Configuration optimisée pour Neon Database
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-export const prisma = globalForPrisma.prisma ?? 
-  new PrismaClient({
-    // Configuration optimisée pour Neon
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
-    
-    // Logging en développement seulement
-    log: process.env.NODE_ENV === 'development' 
-      ? ['query', 'error', 'warn'] 
-      : ['error'],
-    
-    // Configuration pour les connexions serverless
-    transactionOptions: {
-      maxWait: 5000, // 5 secondes max d'attente
-      timeout: 10000, // 10 secondes timeout
-    },
-  });
-
-// Éviter les multiples instances en développement
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
-
-// Gestion propre de la déconnexion
-process.on('beforeExit', async () => {
-  await prisma.$disconnect();
-});
-
-// Helper pour les connexions Neon avec retry
+// Helper pour les connexions avec retry (Neon/Serverless-friendly)
 export async function connectWithRetry<T>(
   operation: () => Promise<T>,
   maxRetries = 3,
@@ -49,13 +14,9 @@ export async function connectWithRetry<T>(
       return await operation();
     } catch (error) {
       lastError = error as Error;
-      
-      // Si c'est la dernière tentative, on lance l'erreur
       if (attempt === maxRetries) {
         throw lastError;
       }
-      
-      // Attendre avant de réessayer
       await new Promise(resolve => setTimeout(resolve, delay * attempt));
     }
   }
@@ -74,14 +35,12 @@ export async function withTransaction<T>(
   });
 }
 
-// Helper pour les requêtes avec cache
+// Helper pour les requêtes avec cache (mémoire locale simple)
 export async function withCache<T>(
   key: string,
   operation: () => Promise<T>,
   ttl = 300000 // 5 minutes par défaut
 ): Promise<T> {
-  // En production, on pourrait utiliser Redis ou un cache en mémoire
-  // Pour l'instant, cache simple en mémoire
   const cache = new Map<string, { data: T; expires: number }>();
   
   const cached = cache.get(key);
@@ -194,22 +153,22 @@ export async function measureQuery<T>(
     const duration = Date.now() - start;
     
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔍 Query "${name}" took ${duration}ms`);
+      console.log(`🔍 Query \"${name}\" took ${duration}ms`);
     }
     
-    // En production, on pourrait envoyer ces métriques à un service de monitoring
     if (duration > 1000) {
-      console.warn(`⚠️ Slow query detected: "${name}" took ${duration}ms`);
+      console.warn(`⚠️ Slow query detected: \"${name}\" took ${duration}ms`);
     }
     
     return result;
   } catch (error) {
     const duration = Date.now() - start;
-    console.error(`❌ Query "${name}" failed after ${duration}ms:`, error);
+    console.error(`❌ Query \"${name}\" failed after ${duration}ms:`, error);
     throw error;
   }
 }
 
-// Export du client par défaut
+// Ré-export propre du client unique
+export { prisma };
 export default prisma;
 
