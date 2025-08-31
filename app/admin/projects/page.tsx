@@ -23,6 +23,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 
 // Types
@@ -148,7 +149,7 @@ const mockProjects: Project[] = [
   }
 ];
 
-const statusConfig: Record<ProjectStatus, { label: string; color: string; icon: (props: { className?: string }) => JSX.Element }> = {
+const statusConfig: Record<ProjectStatus, { label: string; color: string; icon: LucideIcon }> = {
   planifie: { label: 'Planifié', color: 'bg-gray-100 text-gray-800', icon: Calendar },
   en_cours: { label: 'En cours', color: 'bg-blue-100 text-blue-800', icon: Clock },
   revision: { label: 'En révision', color: 'bg-yellow-100 text-yellow-800', icon: AlertCircle },
