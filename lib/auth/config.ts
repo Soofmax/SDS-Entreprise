@@ -151,10 +151,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      // Si l'utilisateur est marqué inactif, invalider la session
-      if (token?.active === false) {
-        return null;
-      }
+      // Si l'utilisateur est marqué inactif, refléter l'état dans la session
       if (token) {
         session.user.id = token.id;
         session.user.role = token.role;
