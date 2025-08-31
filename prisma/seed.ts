@@ -6,21 +6,29 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Début du seeding...');
 
-  // Créer un utilisateur admin
-  const hashedPassword = await bcrypt.hash('admin123', 12);
-  
-  const admin = await prisma.user.upsert({
-    where: { email: 'admin@salwadevstudio.com' },
-    update: {},
-    create: {
-      name: 'Salwa Admin',
-      email: 'admin@salwadevstudio.com',
-      password: hashedPassword,
-      role: Role.ADMIN,
-    },
-  });
+  // Créer un utilisateur admin si aucun n'existe (paramétrable via variables d'env)
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@salwadevstudio.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const adminName = process.env.ADMIN_NAME || 'Salwa Admin';
 
-  console.log('✅ Utilisateur admin créé:', admin.email);
+  let admin = await prisma.user.findFirst({ where: { role: Role.ADMIN } });
+
+  if (!admin) {
+    const hashedPassword = await bcrypt.hash(adminPassword, 12);
+    admin = await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {},
+      create: {
+        name: adminName,
+        email: adminEmail,
+        password: hashedPassword,
+        role: Role.ADMIN,
+      },
+    });
+    console.log('✅ Utilisateur admin créé:', admin.email);
+  } else {
+    console.log('ℹ️ Un utilisateur admin existe déjà:', admin.email);
+  }
 
   // Créer des contacts de démonstration
   const contacts = await Promise.all([
