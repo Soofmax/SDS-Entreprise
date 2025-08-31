@@ -82,19 +82,7 @@ async function handleChargeCreated(charge: any) {
       }
     });
 
-    // Créer une facture minimale associée à ce paiement (alignée avec le schéma Prisma)
-    await prisma.invoice.create({
-      data: {
-        number: `CB-${charge.id}`,
-        status: 'SENT',
-        subtotal: amountCents,
-        taxRate: 0,
-        taxAmount: 0,
-        total: amountCents,
-        dueDate: new Date(), // échéance immédiate par défaut
-        stripeInvoiceId: charge.id
-      }
-    });
+    // Invoice creation deferred until a related Project exists (project relation is required by schema)
 
   } catch (error) {
     console.error('Error handling charge created:', error);
