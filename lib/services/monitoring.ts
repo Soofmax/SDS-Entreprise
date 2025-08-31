@@ -240,19 +240,25 @@ export class MonitoringService {
       alert.resolved = true;
     }
 
-    // Mettre à jour en base
+    // Mettre à jour en base: marquer l'alerte comme résolue dans le JSON details
     try {
-      await prisma.errorLog.updateMany({
+      const logs = await prisma.errorLog.findMany({
         where: {
           details: {
             path: ['alertId'],
             equals: alertId,
           },
         },
-        data: {
-          resolved: true,
-        },
+        select: { id: true, details: true },
       });
+
+      for (const log of logs) {
+        const merged = JSON.parse(JSON.stringify({ ...(log.details as any), resolved: true }));
+        await prisma.errorLog.update({
+          where: { id: log.id },
+          data: { details: merged as any },
+        });
+      }
     } catch (error) {
       console.error('Erreur résolution alerte:', error);
     }
@@ -424,7 +430,7 @@ export class MonitoringService {
           data: {
             name: 'system_metrics',
             category: 'system',
-            properties: metrics,
+            properties: JSON.parse(JSON.stringify(metrics)),
           },
         });
       } catch (error) {

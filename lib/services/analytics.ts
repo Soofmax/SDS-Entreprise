@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/db/client';
-import { AnalyticsEvent } from '@/lib/types';
 
 // Types pour les analytics
 export interface PageView {
@@ -61,6 +60,20 @@ export interface AnalyticsReport {
   };
 }
 
+// Entrée d'événement utilisée par ce service (inclut sessionId, page, etc.)
+interface AnalyticsEventInput {
+  name: string;
+  category: string;
+  properties?: Record<string, any>;
+  sessionId?: string;
+  userId?: string;
+  userAgent?: string;
+  ipAddress?: string;
+  referrer?: string;
+  page?: string;
+  timestamp?: Date;
+}
+
 /**
  * Classe principale pour les analytics
  */
@@ -79,7 +92,7 @@ export class AnalyticsService {
   /**
    * Enregistrer un événement analytics
    */
-  async trackEvent(event: AnalyticsEvent): Promise<void> {
+  async trackEvent(event: AnalyticsEventInput): Promise<void> {
     try {
       await prisma.analyticsEvent.create({
         data: {
@@ -92,6 +105,7 @@ export class AnalyticsService {
           ipAddress: event.ipAddress,
           referrer: event.referrer,
           page: event.page,
+          createdAt: event.timestamp, // facultatif
         }
       });
     } catch (error) {
