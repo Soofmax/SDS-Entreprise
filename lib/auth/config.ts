@@ -1,10 +1,12 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions, getServerSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/db/client';
 import bcrypt from 'bcryptjs';
-import { User, UserRole } from '@prisma/client';
+import type { User } from '@prisma/client';
+import { Role } from '@prisma/client';
+import { useSession } from 'next-auth/react';
 
 // Types étendus pour NextAuth
 declare module 'next-auth' {
@@ -13,7 +15,7 @@ declare module 'next-auth' {
       id: string;
       email: string;
       name: string;
-      role: UserRole;
+      role: Role;
       active: boolean;
     };
   }
@@ -22,7 +24,7 @@ declare module 'next-auth' {
     id: string;
     email: string;
     name: string;
-    role: UserRole;
+    role: Role;
     active: boolean;
   }
 }
@@ -30,7 +32,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    role: UserRole;
+    role: Role;
     active: boolean;
   }
 }
@@ -238,7 +240,7 @@ export async function createUser(
   email: string,
   name: string,
   password: string,
-  role: UserRole = 'ADMIN'
+  role: Role = Role.ADMIN
 ): Promise<User> {
   const passwordHash = await bcrypt.hash(password, 12);
   
@@ -276,7 +278,7 @@ export async function toggleUserStatus(
 }
 
 // Middleware pour vérifier les permissions
-export function requireAuth(roles?: UserRole[]) {
+export function requireAuth(roles?: Role[]) {
   return async (req: any, res: any, next: any) => {
     const session = await getServerSession(authOptions);
     
