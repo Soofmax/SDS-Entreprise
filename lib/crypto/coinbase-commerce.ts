@@ -15,6 +15,7 @@ export interface CoinbaseChargeData {
     package: string;
     customer_email?: string;
     customer_name?: string;
+    source?: string;
   };
   redirect_url?: string;
   cancel_url?: string;
