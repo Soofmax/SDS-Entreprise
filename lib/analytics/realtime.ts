@@ -1,5 +1,6 @@
 // Analytics en temps réel pour SDS
 import { trackEvent } from './gtag';
+import { useEffect, useState } from 'react';
 
 export interface RealTimeMetrics {
   activeUsers: number;
