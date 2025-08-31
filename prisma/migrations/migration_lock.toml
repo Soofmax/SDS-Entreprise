@@ -1,0 +1,3 @@
+# This file is managed by Prisma Migrate.
+# It keeps track of the datasource provider to ensure consistency.
+provider = "postgresql"
