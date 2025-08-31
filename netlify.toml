@@ -3,7 +3,7 @@
 
   # Use a supported major Node.js version (Netlify recommends major versions)
   [build.environment]
-    NODE_VERSION = "22"
+    NODE_VERSION = "20"
     NEXT_TELEMETRY_DISABLED = "1"
     HUSKY = "0" # hard-disable husky on Netlify builds to avoid prepare failures
     NPM_FLAGS = "--no-audit --no-fund --legacy-peer-deps"
