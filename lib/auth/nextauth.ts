@@ -1,4 +1,4 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions, type DefaultSession } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
@@ -149,25 +149,20 @@ export const authOptions: NextAuthOptions = {
 };
 
 // Types pour TypeScript (alignés avec lib/auth/config.ts)
+// On étend sans modifier les types natifs NextAuth
 declare module 'next-auth' {
   interface Session {
-    user: {
+    user: DefaultSession['user'] & {
       id: string;
-      email: string;
-      name: string;
       role: Role;
       active: boolean;
-      image?: string;
     };
   }
 
   interface User {
     id: string;
-    email: string;
-    name: string;
     role: Role;
     active: boolean;
-    image?: string | null;
   }
 }
 

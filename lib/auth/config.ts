@@ -1,4 +1,4 @@
-import { NextAuthOptions, getServerSession } from 'next-auth';
+import { NextAuthOptions, getServerSession, type DefaultSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
@@ -8,26 +8,20 @@ import type { User } from '@prisma/client';
 import { Role } from '@prisma/client';
 import { useSession } from 'next-auth/react';
 
-// Types étendus pour NextAuth
+// Types étendus pour NextAuth (ne pas changer les types natifs, on ajoute des champs)
 declare module 'next-auth' {
   interface Session {
-    user: {
+    user: DefaultSession['user'] & {
       id: string;
-      email: string;
-      name: string;
       role: Role;
       active: boolean;
-      image?: string;
     };
   }
 
   interface User {
     id: string;
-    email: string;
-    name: string;
     role: Role;
     active: boolean;
-    image?: string | null;
   }
 }
 
