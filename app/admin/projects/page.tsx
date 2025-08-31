@@ -169,7 +169,9 @@ const typeConfig: Record<ProjectType, string> = {
   'Site + Booking': 'bg-indigo-100 text-indigo-800'
 };
 
-export default function ProjectsPage() {
+import dynamic from 'next/dynamic';
+
+function ProjectsPage() {
   const { data: session } = useSession();
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('tous');
@@ -553,4 +555,6 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(ProjectsPage), { ssr: false });
 
