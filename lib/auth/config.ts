@@ -17,6 +17,7 @@ declare module 'next-auth' {
       name: string;
       role: Role;
       active: boolean;
+      image?: string;
     };
   }
 
@@ -26,6 +27,7 @@ declare module 'next-auth' {
     name: string;
     role: Role;
     active: boolean;
+    image?: string | null;
   }
 }
 
