@@ -25,8 +25,32 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// Types
+type ProjectStatus = 'planifie' | 'en_cours' | 'revision' | 'attente' | 'termine' | 'annule';
+type ProjectType = 'Site Vitrine' | 'E-commerce' | 'Landing Page' | 'Portfolio' | 'Site + Booking';
+
+interface ProjectTask {
+  name: string;
+  completed: boolean;
+}
+
+interface Project {
+  id: number;
+  name: string;
+  client: string;
+  company: string;
+  type: ProjectType;
+  budget: number;
+  progress: number;
+  status: ProjectStatus;
+  startDate: string; // ISO date
+  deadline: string; // ISO date
+  description: string;
+  tasks: ProjectTask[];
+}
+
 // Mock data pour les projets
-const mockProjects = [
+const mockProjects: Project[] = [
   {
     id: 1,
     name: 'Site E-commerce Studio Créatif',
@@ -124,7 +148,7 @@ const mockProjects = [
   }
 ];
 
-const statusConfig = {
+const statusConfig: Record<ProjectStatus, { label: string; color: string; icon: (props: { className?: string }) => JSX.Element }> = {
   planifie: { label: 'Planifié', color: 'bg-gray-100 text-gray-800', icon: Calendar },
   en_cours: { label: 'En cours', color: 'bg-blue-100 text-blue-800', icon: Clock },
   revision: { label: 'En révision', color: 'bg-yellow-100 text-yellow-800', icon: AlertCircle },
@@ -133,7 +157,7 @@ const statusConfig = {
   annule: { label: 'Annulé', color: 'bg-red-100 text-red-800', icon: AlertCircle }
 };
 
-const typeConfig = {
+const typeConfig: Record<ProjectType, string> = {
   'Site Vitrine': 'bg-purple-100 text-purple-800',
   'E-commerce': 'bg-green-100 text-green-800',
   'Landing Page': 'bg-blue-100 text-blue-800',
@@ -143,9 +167,9 @@ const typeConfig = {
 
 export default function ProjectsPage() {
   const { data: session } = useSession();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('tous');
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('tous');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   if (!session) {
     return (
@@ -171,11 +195,12 @@ export default function ProjectsPage() {
     );
   }
 
-  const filteredProjects = mockProjects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.company.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'tous' || project.status === statusFilter;
+  const filteredProjects = mockProjects.filter((project) => {
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'tous' || project.status === (statusFilter as ProjectStatus);
     return matchesSearch && matchesStatus;
   });
 
