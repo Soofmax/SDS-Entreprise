@@ -65,8 +65,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       // Ajouter les informations utilisateur au token
       if (user) {
-        token.role = user.role;
+        token.role = user.role as Role;
         token.id = user.id;
+        // Valeur par défaut si non gérée ailleurs
+        // (dans lib/auth/config.ts le token.active est géré de manière plus complète)
+        // Ici on initialise à true pour éviter les problèmes de typage lors de la fusion
+        // et laisser la logique serveur affiner ensuite.
+        // @ts-expect-error - dépend des callbacks amont
+        token.active = (token as any).active ?? true;
       }
 
       // Si connexion via Google, créer/mettre à jour l'utilisateur
@@ -76,8 +82,14 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (existingUser) {
-          token.role = existingUser.role;
+          token.role = existingUser.role as Role;
           token.id = existingUser.id;
+          // @ts-expect-error - propriété ajoutée via module augmentation
+          token.active = existingUser.active ?? true;
+        } else {
+          // Utilisateur nouvellement créé (rôle par défaut USER côté création)
+          // @ts-expect-error - propriété ajoutée via module augmentation
+          token.active = true;
         }
       }
 
@@ -88,7 +100,9 @@ export const authOptions: NextAuthOptions = {
       // Ajouter les informations du token à la session
       if (token) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.role = token.role as Role;
+        // @ts-expect-error - propriété ajoutée via module augmentation
+        session.user.active = (token as any).active ?? true;
       }
 
       return session;
