@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { trackEvents } from '@/lib/analytics/gtag';
+import { trackEvents, trackEvent } from '@/lib/analytics/gtag';
 import { useCookieConsent } from './useCookieConsent';
 
 export function useAnalytics() {
@@ -46,7 +46,7 @@ export function useAnalytics() {
 
     // Navigation et engagement
     trackButtonClick: useCallback((buttonName: string, location: string) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'button_click',
         category: 'engagement',
         label: `${buttonName}_${location}`,
@@ -54,7 +54,7 @@ export function useAnalytics() {
     }, [track]),
 
     trackModalOpen: useCallback((modalName: string) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'modal_open',
         category: 'engagement',
         label: modalName,
@@ -62,7 +62,7 @@ export function useAnalytics() {
     }, [track]),
 
     trackModalClose: useCallback((modalName: string, timeSpent: number) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'modal_close',
         category: 'engagement',
         label: modalName,
@@ -72,7 +72,7 @@ export function useAnalytics() {
 
     // Recherche
     trackSearch: useCallback((query: string, resultsCount: number) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'search',
         category: 'engagement',
         label: query,
@@ -82,7 +82,7 @@ export function useAnalytics() {
 
     // Filtres
     trackFilterUsage: useCallback((filterType: string, filterValue: string) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'filter_used',
         category: 'engagement',
         label: `${filterType}_${filterValue}`,
@@ -91,7 +91,7 @@ export function useAnalytics() {
 
     // Téléchargements
     trackDownload: useCallback((fileName: string, fileType: string) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'download',
         category: 'content',
         label: `${fileName}.${fileType}`,
@@ -100,7 +100,7 @@ export function useAnalytics() {
 
     // Erreurs
     trackError: useCallback((errorType: string, errorMessage: string) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'error',
         category: 'error',
         label: errorType,
@@ -112,7 +112,7 @@ export function useAnalytics() {
 
     // Performance
     trackPerformance: useCallback((metric: string, value: number) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'performance_metric',
         category: 'performance',
         label: metric,
@@ -122,7 +122,7 @@ export function useAnalytics() {
 
     // Accessibilité
     trackAccessibilityUsage: useCallback((feature: string) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'accessibility_feature_used',
         category: 'accessibility',
         label: feature,
@@ -131,7 +131,7 @@ export function useAnalytics() {
 
     // PWA
     trackPWAInstall: useCallback(() => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'pwa_install',
         category: 'pwa',
         label: 'app_installed',
@@ -139,7 +139,7 @@ export function useAnalytics() {
     }, [track]),
 
     trackPWAUsage: useCallback((feature: string) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action: 'pwa_feature_used',
         category: 'pwa',
         label: feature,
@@ -148,7 +148,7 @@ export function useAnalytics() {
 
     // Événements personnalisés
     trackCustomEvent: useCallback((action: string, category: string, label?: string, value?: number, customParams?: Record<string, any>) => {
-      track(() => trackEvents.trackEvent({
+      track(() => trackEvent({
         action,
         category,
         label,

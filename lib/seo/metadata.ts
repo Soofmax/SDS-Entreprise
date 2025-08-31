@@ -135,8 +135,10 @@ export function generateMetadata(pageData: PageMetadata = {}): Metadata {
     creator: siteConfig.creator,
     publisher: siteConfig.name,
     robots: noIndex ? 'noindex,nofollow' : 'index,follow',
-    canonical: canonical || siteConfig.url,
-    alternates,
+    alternates: {
+      canonical: canonical || siteConfig.url,
+      languages: alternates?.languages,
+    },
     
     // Open Graph
     openGraph: {

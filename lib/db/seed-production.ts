@@ -52,14 +52,22 @@ async function seedProduction() {
     ];
 
     for (const contactData of demoContacts) {
-      const contact = await prisma.contact.upsert({
+      // upsert basé sur email (non unique) -> find/update/create
+      const existingContact = await prisma.contact.findFirst({
         where: { email: contactData.email },
-        update: contactData,
-        create: {
-          ...contactData,
-          userId: admin.id,
-        },
       });
+
+      const contact = existingContact
+        ? await prisma.contact.update({
+            where: { id: existingContact.id },
+            data: contactData,
+          })
+        : await prisma.contact.create({
+            data: {
+              ...contactData,
+              userId: admin.id,
+            },
+          });
 
       // Créer un projet pour les contacts gagnés
       if (contact.status === ContactStatus.WON) {
@@ -105,19 +113,26 @@ async function seedProduction() {
         ];
 
         for (const taskData of tasks) {
-          await prisma.projectTask.upsert({
+          const existingTask = await prisma.projectTask.findFirst({
             where: {
-              projectId_title: {
-                projectId: project.id,
-                title: taskData.title,
-              },
-            },
-            update: taskData,
-            create: {
-              ...taskData,
               projectId: project.id,
+              title: taskData.title,
             },
           });
+
+          if (existingTask) {
+            await prisma.projectTask.update({
+              where: { id: existingTask.id },
+              data: taskData,
+            });
+          } else {
+            await prisma.projectTask.create({
+              data: {
+                ...taskData,
+                projectId: project.id,
+              },
+            });
+          }
         }
 
         // Créer un témoignage pour les projets terminés
