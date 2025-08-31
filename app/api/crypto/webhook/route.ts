@@ -321,10 +321,5 @@ async function sendCryptoPaymentConfirmation(data: {
   } catch (error) {
     console.error('Error sending confirmation email:', error);
   }
-});
-
-  } catch (error) {
-    console.error('Error sending confirmation email:', error);
-  }
 }
 
