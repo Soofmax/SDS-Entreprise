@@ -66,7 +66,7 @@ async function main() {
         projectType: ProjectType.WEB3,
         budget: 8500,
         timeline: '1-2 mois',
-        status: ContactStatus.IN_PROGRESS,
+        status: ContactStatus.QUALIFIED,
         source: 'Référence client',
         userId: admin.id,
       },
@@ -82,7 +82,7 @@ async function main() {
         projectType: ProjectType.LANDING_PAGE,
         budget: 2800,
         timeline: '1 semaine',
-        status: ContactStatus.COMPLETED,
+        status: ContactStatus.WON,
         source: 'LinkedIn',
         userId: admin.id,
       },
@@ -123,14 +123,14 @@ async function main() {
   console.log('✅ Contacts créés:', contacts.length);
 
   // Créer des projets pour les contacts gagnés
-  const wonContacts = contacts.filter(c => c.status === ContactStatus.WON || c.status === ContactStatus.COMPLETED);
+  const wonContacts = contacts.filter(c => c.status === ContactStatus.WON);
   
   for (const contact of wonContacts) {
     const project = await prisma.project.create({
       data: {
         title: `Projet ${contact.company}`,
         description: `Développement d'un ${contact.projectType.toLowerCase()} pour ${contact.company}. ${contact.message}`,
-        status: contact.status === ContactStatus.COMPLETED ? ProjectStatus.DELIVERED : ProjectStatus.IN_PROGRESS,
+        status: ProjectStatus.DELIVERED,
         type: contact.projectType,
         contactId: contact.id,
         budget: contact.budget || 5000,
@@ -143,7 +143,7 @@ async function main() {
         features: contact.projectType === ProjectType.ECOMMERCE
           ? ['Catalogue produits', 'Panier', 'Paiement Stripe', 'Gestion commandes']
           : ['Design responsive', 'SEO optimisé', 'Formulaire contact', 'Analytics'],
-        progress: contact.status === ProjectStatus.DELIVERED ? 100 : Math.floor(Math.random() * 80) + 20,
+        progress: 100,
         userId: admin.id,
       },
     });
@@ -161,34 +161,34 @@ async function main() {
       {
         title: 'Design et maquettes',
         description: 'Créer les maquettes et définir l\'identité visuelle',
-        status: project.progress > 30 ? TaskStatus.DONE : TaskStatus.IN_PROGRESS,
+        status: TaskStatus.DONE,
         priority: Priority.HIGH,
         estimatedHours: 8,
-        actualHours: project.progress > 30 ? 9 : undefined,
+        actualHours: 9,
       },
       {
         title: 'Développement frontend',
         description: 'Intégration des maquettes et développement des fonctionnalités',
-        status: project.progress > 60 ? TaskStatus.DONE : project.progress > 30 ? TaskStatus.IN_PROGRESS : TaskStatus.TODO,
+        status: TaskStatus.DONE,
         priority: Priority.HIGH,
         estimatedHours: 16,
-        actualHours: project.progress > 60 ? 18 : undefined,
+        actualHours: 18,
       },
       {
         title: 'Tests et optimisations',
         description: 'Tests fonctionnels, optimisation des performances',
-        status: project.progress > 80 ? TaskStatus.DONE : TaskStatus.IN_PROGRESS : TaskStatus.TODO,
+        status: TaskStatus.DONE,
         priority: Priority.MEDIUM,
         estimatedHours: 4,
-        actualHours: project.progress > 80 ? 5 : undefined,
+        actualHours: 5,
       },
       {
         title: 'Déploiement',
         description: 'Mise en production et configuration du domaine',
-        status: project.progress === 100 ? TaskStatus.DONE : TaskStatus.TODO,
+        status: TaskStatus.DONE,
         priority: Priority.MEDIUM,
         estimatedHours: 2,
-        actualHours: project.progress === 100 ? 2 : undefined,
+        actualHours: 2,
       },
     ];
 
@@ -197,7 +197,7 @@ async function main() {
         data: {
           ...taskData,
           projectId: project.id,
-          completedAt: taskData.status === TaskStatus.DONE ? new Date() : undefined,
+          completedAt: new Date(),
         },
       });
     }
