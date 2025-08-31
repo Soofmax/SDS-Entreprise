@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 
 // Helper pour les connexions avec retry (Neon/Serverless-friendly)
@@ -26,7 +26,7 @@ export async function connectWithRetry<T>(
 
 // Helper pour les transactions avec gestion d'erreur
 export async function withTransaction<T>(
-  operation: (tx: PrismaClient) => Promise<T>
+  operation: (tx: Prisma.TransactionClient) => Promise<T>
 ): Promise<T> {
   return connectWithRetry(async () => {
     return prisma.$transaction(async (tx) => {
