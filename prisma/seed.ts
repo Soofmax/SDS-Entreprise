@@ -30,6 +30,14 @@ async function main() {
     console.log('ℹ️ Un utilisateur admin existe déjà:', admin.email);
   }
 
+  // Activer/désactiver les données de démonstration via variable d'environnement
+  const seedDemo = (process.env.SEED_DEMO_DATA ?? 'true').toLowerCase() === 'true';
+  if (!seedDemo) {
+    console.log('ℹ️ SEED_DEMO_DATA=false, seeding des données de démonstration désactivé.');
+    console.log('🎉 Seeding terminé avec succès (admin uniquement) !');
+    return;
+  }
+
   // Créer des contacts de démonstration
   const contacts = await Promise.all([
     prisma.contact.create({
@@ -169,7 +177,7 @@ async function main() {
       {
         title: 'Tests et optimisations',
         description: 'Tests fonctionnels, optimisation des performances',
-        status: project.progress > 80 ? TaskStatus.DONE : project.progress > 60 ? TaskStatus.IN_PROGRESS : TaskStatus.TODO,
+        status: project.progress > 80 ? TaskStatus.DONE : TaskStatus.IN_PROGRESS : TaskStatus.TODO,
         priority: Priority.MEDIUM,
         estimatedHours: 4,
         actualHours: project.progress > 80 ? 5 : undefined,
