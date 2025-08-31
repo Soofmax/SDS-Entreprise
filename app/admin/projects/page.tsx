@@ -179,10 +179,10 @@ export default function ProjectsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const getDaysRemaining = (deadline) => {
+  const getDaysRemaining = (deadline: string | Date) => {
     const today = new Date();
     const deadlineDate = new Date(deadline);
-    const diffTime = deadlineDate - today;
+    const diffTime = +deadlineDate - +today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
