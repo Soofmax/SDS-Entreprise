@@ -59,13 +59,22 @@ async function handleChargeCreated(charge: any) {
   try {
     // Log charge creation
     console.log(`Crypto charge created: ${charge.id}`);
-    
-    // Store in database for tracking
-    await prisma.invoice.create({
+
+    // Enregistrer un évènement analytics compatible avec le schéma actuel
+    await prisma.analytics.create({
       data: {
-        stripeInvoiceId: charge.id,
-        // map to existing schema fields; store extra info in stripeInvoiceId/stripePaymentIntentId if needed
-        status: 'SENT'
+        event: 'crypto_charge_created',
+        page: '/api/crypto/webhook',
+        sessionId: charge.id,
+        properties: {
+          coinbaseChargeId: charge.id,
+          packageType: charge?.metadata?.package,
+          customerEmail: charge?.metadata?.customer_email,
+          customerName: charge?.metadata?.customer_name,
+          amount: parseFloat(charge?.pricing?.local?.amount),
+          currency: charge?.pricing?.local?.currency,
+          provider: 'coinbase_commerce'
+        }
       }
     });
 
@@ -78,7 +87,7 @@ async function handleChargeConfirmed(charge: any) {
   try {
     console.log(`Crypto payment confirmed: ${charge.id}`);
     
-    // Update invoice status
+    // Update invoice status (si une facture correspondante existe)
     await prisma.invoice.updateMany({
       where: {
         stripeInvoiceId: charge.id
@@ -88,80 +97,22 @@ async function handleChargeConfirmed(charge: any) {
       }
     });
 
-    // Extract payment details
-    const payment = charge.payments?.[0];
-    const packageType = charge.metadata.package;
-    const customerEmail = charge.metadata.customer_email;
-    const customerName = charge.metadata.customer_name;
+    const payment = charge?.payments?.[0];
 
-    // Create or update contact
-    let contact = null;
-    if (customerEmail) {
-      contact = await prisma.contact.upsert({
-        where: { email: customerEmail },
-        update: {
-          status: 'WON',
-          notes: `Crypto payment confirmed for ${packageType} package`
-        },
-        create: {
-          name: customerName || 'Crypto Customer',
-          email: customerEmail,
-          status: 'WON',
-          projectType: packageType,
-          budget: parseFloat(charge.pricing.local.amount),
-          source: 'CRYPTO_PAYMENT',
-          notes: `Crypto payment confirmed for ${packageType} package`
-        }
-      });
-    }
-
-    // Create project automatically
-    if (contact) {
-      await prisma.project.create({
-        data: {
-          title: `${packageType} - ${customerName || 'Crypto Customer'}`,
-          description: `Project created from crypto payment for ${packageType} package`,
-          status: 'PLANNING',
-          priority: 'MEDIUM',
-          budget: parseFloat(charge.pricing.local.amount),
-          contactId: contact.id,
-          startDate: new Date(),
-          metadata: {
-            paymentMethod: 'crypto',
-            coinbaseChargeId: charge.id,
-            transactionHash: payment?.transaction_id,
-            cryptoCurrency: payment?.value?.crypto?.currency,
-            cryptoAmount: payment?.value?.crypto?.amount
-          }
-        }
-      });
-    }
-
-    // Send confirmation email (if email service is configured)
-    if (customerEmail) {
-      await sendCryptoPaymentConfirmation({
-        email: customerEmail,
-        name: customerName,
-        packageType,
-        amount: charge.pricing.local.amount,
-        currency: charge.pricing.local.currency,
-        transactionHash: payment?.transaction_id,
-        cryptoCurrency: payment?.value?.crypto?.currency,
-        cryptoAmount: payment?.value?.crypto?.amount
-      });
-    }
-
-    // Update analytics
-    await prisma.analyticsEvent.create({
+    // Journaliser l'évènement dans la table analytics conforme au schéma courant
+    await prisma.analytics.create({
       data: {
-        eventType: 'CRYPTO_PAYMENT_CONFIRMED',
-        eventData: {
-          packageType,
-          amount: parseFloat(charge.pricing.local.amount),
-          currency: charge.pricing.local.currency,
+        event: 'crypto_payment_confirmed',
+        page: '/api/crypto/webhook',
+        sessionId: charge.id,
+        properties: {
+          packageType: charge?.metadata?.package,
+          amount: parseFloat(charge?.pricing?.local?.amount),
+          currency: charge?.pricing?.local?.currency,
           cryptoCurrency: payment?.value?.crypto?.currency,
           cryptoAmount: payment?.value?.crypto?.amount,
-          paymentMethod: 'coinbase_commerce'
+          transactionHash: payment?.transaction_id,
+          provider: 'coinbase_commerce'
         }
       }
     });
@@ -185,15 +136,18 @@ async function handleChargeFailed(charge: any) {
       }
     });
 
-    // Update analytics
-    await prisma.analyticsEvent.create({
+    // Journaliser l'évènement d'échec
+    await prisma.analytics.create({
       data: {
-        eventType: 'CRYPTO_PAYMENT_FAILED',
-        eventData: {
-          packageType: charge.metadata.package,
-          amount: parseFloat(charge.pricing.local.amount),
-          currency: charge.pricing.local.currency,
-          reason: 'payment_failed'
+        event: 'crypto_payment_failed',
+        page: '/api/crypto/webhook',
+        sessionId: charge.id,
+        properties: {
+          packageType: charge?.metadata?.package,
+          amount: parseFloat(charge?.pricing?.local?.amount),
+          currency: charge?.pricing?.local?.currency,
+          reason: 'payment_failed',
+          provider: 'coinbase_commerce'
         }
       }
     });
