@@ -1,11 +1,4 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+'use client';
 
-import dynamicImport from 'next/dynamic';
-
-// Load the client component only on the client, never on the server/build
-const Client = dynamicImport(() => import('./Client'), { ssr: false });
-
-export default function Page() {
-  return <Client />;
-}
+// Render the page entirely on the client to avoid any server-side data collection
+export { default } from './Client';
