@@ -169,7 +169,7 @@ const typeConfig: Record<ProjectType, string> = {
   'Site + Booking': 'bg-indigo-100 text-indigo-800'
 };
 
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
 function ProjectsPage() {
   const { data: session } = useSession();
@@ -556,5 +556,5 @@ function ProjectsPage() {
   );
 }
 
-export default dynamic(() => Promise.resolve(ProjectsPage), { ssr: false });
+export default dynamicImport(() => Promise.resolve(ProjectsPage), { ssr: false });
 
