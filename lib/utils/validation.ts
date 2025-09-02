@@ -146,7 +146,15 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
   ],
   project: [
     Validator.required<'' | import('@/lib/types').ServiceCategory>('Le type de projet est requis'),
-    Validator.oneOf<'' | import('@/lib/types').ServiceCategory>(PROJECT_OPTIONS)
+    // Utiliser une règle custom typée exactement pour éviter les soucis d'inférence TS
+    Validator.custom<'' | import('@/lib/types').ServiceCategory>(
+      (v) =>
+        v !== '' &&
+        (['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as const).includes(
+          v as import('@/lib/types').ServiceCategory
+        ),
+      'Valeur invalide pour le type de projet'
+    )
   ],
   budget: [
     Validator.required('Le budget est requis')
