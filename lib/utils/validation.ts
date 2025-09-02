@@ -142,8 +142,8 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
   ],
   project: [
     Validator.required('Le type de projet est requis'),
-    // élargir la liste pour correspondre au type ServiceCategory | ''
-    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as ('' | 'vitrine' | 'ecommerce' | 'application' | 'refonte' | 'seo' | 'maintenance')[])
+    // on utilise l'overload générique pour typer exactement "" | ServiceCategory
+    Validator.oneOf<'' | import('@/lib/types').ServiceCategory>(['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as const as ('' | import('@/lib/types').ServiceCategory)[])
   ],
   budget: [
     Validator.required('Le budget est requis')
