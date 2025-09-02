@@ -166,6 +166,9 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
   ]
 };
 
+// Options autorisées pour France Num (sous-ensemble de ServiceCategory)
+const FRANCE_NUM_PROJECT_TYPES = ['vitrine', 'ecommerce', 'application', 'refonte'] as const;
+
 export const franceNumFormSchema: ValidationSchema<FranceNumFormData> = {
   companySize: [
     Validator.required('La taille de l\'entreprise est requise'),
@@ -180,13 +183,11 @@ export const franceNumFormSchema: ValidationSchema<FranceNumFormData> = {
   ],
   projectType: [
     Validator.required<'' | import('@/lib/types').ServiceCategory>('Le type de projet est requis'),
-    // Règle custom typée exactement pour éviter le resserrement de l'union par TS
+    // Règle custom avec includes typé en string pour éviter l'erreur TS2345
     Validator.custom<'' | import('@/lib/types').ServiceCategory>(
       (v) =>
         v !== '' &&
-        (['vitrine', 'ecommerce', 'application', 'refonte'] as const).includes(
-          v as import('@/lib/types').ServiceCategory
-        ),
+        (FRANCE_NUM_PROJECT_TYPES as readonly string[]).includes(v as string),
       'Valeur invalide pour le type de projet'
     )
   ],
