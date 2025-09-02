@@ -124,6 +124,10 @@ export function validateSchema<T extends Record<string, any>>(
 /**
  * Schémas de validation prédéfinis
  */
+
+// Options typées explicitement pour le champ project ('' | ServiceCategory)
+const PROJECT_OPTIONS = (['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as const) as unknown as ('' | import('@/lib/types').ServiceCategory)[];
+
 export const contactFormSchema: ValidationSchema<ContactFormData> = {
   name: [
     Validator.required('Le nom est requis'),
@@ -142,10 +146,7 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
   ],
   project: [
     Validator.required<'' | import('@/lib/types').ServiceCategory>('Le type de projet est requis'),
-    // Cast via unknown to satisfy readonly-to-mutable conversion and union widen
-    Validator.oneOf<'' | import('@/lib/types').ServiceCategory>(
-      (['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as const) as unknown as ('' | import('@/lib/types').ServiceCategory)[]
-    )
+    Validator.oneOf<'' | import('@/lib/types').ServiceCategory>(PROJECT_OPTIONS)
   ],
   budget: [
     Validator.required('Le budget est requis')
