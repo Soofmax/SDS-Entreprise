@@ -3,6 +3,9 @@ const nextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
 
+  // Disable SWC minification to avoid a known issue producing invalid backticks in server chunks
+  swcMinify: false,
+
   // Avoid failing production builds on ESLint/TypeScript errors (temporary Netlify unblock)
   eslint: {
     ignoreDuringBuilds: true,
