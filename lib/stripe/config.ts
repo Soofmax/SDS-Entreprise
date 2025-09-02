@@ -1,14 +1,26 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is required');
-}
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  // Keep API version consistent with lib/services/stripe.ts and CI requirement
-  apiVersion: '2025-08-27.basil',
-  typescript: true,
-});
+/**
+ * Stripe client initialization
+ * - Do not throw at module load if the key is missing (helps CI/type-check without env)
+ * - Throw only when someone actually tries to use the client without a key
+ */
+export const stripe = (() => {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    // Return a proxy that throws on any property access to avoid runtime misuse
+    return new Proxy({} as Stripe, {
+      get() {
+        throw new Error('STRIPE_SECRET_KEY is required to use Stripe. Set it in your environment.');
+      },
+    }) as unknown as Stripe;
+  }
+  return new Stripe(key, {
+    // Keep API version consistent with lib/services/stripe.ts and CI requirement
+    apiVersion: '2025-08-27.basil',
+    typescript: true,
+  });
+})();
 
 // Configuration des packages SDS
 export const PACKAGES = {
