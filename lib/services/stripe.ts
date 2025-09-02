@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db/client';
 
 // Configuration Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  // Align with the configured Stripe API version used across the project
+  apiVersion: '2025-08-27.basil',
   typescript: true,
 });
 
@@ -279,7 +280,7 @@ export async function createInvoice(
   });
 
   // Finaliser la facture
-  return stripe.invoices.finalizeInvoice(invoice.id);
+  return stripe.invoices.finalizeInvoice(invoice.id as string);
 }
 
 /**
