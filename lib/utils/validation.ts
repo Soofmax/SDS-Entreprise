@@ -142,7 +142,8 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
   ],
   project: [
     Validator.required('Le type de projet est requis'),
-    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'])
+    // élargir la liste pour correspondre au type ServiceCategory | ''
+    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as ('' | 'vitrine' | 'ecommerce' | 'application' | 'refonte' | 'seo' | 'maintenance')[])
   ],
   budget: [
     Validator.required('Le budget est requis')
