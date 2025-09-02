@@ -422,6 +422,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
       expand: ['payment_intent', 'customer']
     });
 
+    // Utilitaires pour extraire l'ID des unions string | object
+    const extractId = (val: string | { id: string } | null | undefined): string | undefined => {
+      if (!val) return undefined;
+      if (typeof val === 'string') return val;
+      return val.id;
+    };
+
+    const paymentIntentId = extractId(fullSession.payment_intent as any);
+    const customerId = extractId(fullSession.customer as any);
+
     // Enregistrer la commande
     await prisma.analyticsEvent.create({
       data: {
@@ -429,8 +439,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
         category: 'form_submission',
         properties: {
           sessionId: session.id,
-          paymentIntentId: fullSession.payment_intent?.id,
-          customerId: fullSession.customer?.id,
+          paymentIntentId,
+          customerId,
           amount: session.amount_total,
           currency: session.currency,
           productId: session.metadata?.productId,
