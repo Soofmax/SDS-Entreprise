@@ -179,8 +179,16 @@ export const franceNumFormSchema: ValidationSchema<FranceNumFormData> = {
     Validator.required('La localisation est requise')
   ],
   projectType: [
-    Validator.required('Le type de projet est requis'),
-    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte'])
+    Validator.required<'' | import('@/lib/types').ServiceCategory>('Le type de projet est requis'),
+    // Règle custom typée exactement pour éviter le resserrement de l'union par TS
+    Validator.custom<'' | import('@/lib/types').ServiceCategory>(
+      (v) =>
+        v !== '' &&
+        (['vitrine', 'ecommerce', 'application', 'refonte'] as const).includes(
+          v as import('@/lib/types').ServiceCategory
+        ),
+      'Valeur invalide pour le type de projet'
+    )
   ],
   budget: [
     Validator.required('Le budget est requis')
