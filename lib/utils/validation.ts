@@ -19,9 +19,9 @@ export interface ValidationResult {
  * Classe pour créer des règles de validation réutilisables
  */
 export class Validator {
-  static required(message = 'Ce champ est requis'): ValidationRule {
+  static required<T = any>(message = 'Ce champ est requis'): ValidationRule<T | '' | undefined> {
     return {
-      validate: (value: any) => {
+      validate: (value: T | '' | undefined) => {
         if (typeof value === 'string') return value.trim().length > 0;
         return value !== null && value !== undefined && value !== '';
       },
@@ -29,9 +29,10 @@ export class Validator {
     };
   }
 
-  static email(message = 'Adresse email invalide'): ValidationRule<string> {
+  static email(message = 'Adresse email invalide'): ValidationRule<string | undefined> {
     return {
-      validate: (value: string) => {
+      validate: (value: string | undefined) => {
+        if (!value) return false;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(value);
       },
@@ -39,9 +40,10 @@ export class Validator {
     };
   }
 
-  static phone(message = 'Numéro de téléphone invalide'): ValidationRule<string> {
+  static phone(message = 'Numéro de téléphone invalide'): ValidationRule<string | undefined> {
     return {
-      validate: (value: string) => {
+      validate: (value: string | undefined) => {
+        if (!value) return false;
         const phoneRegex = /^(?:\+33|0)[1-9](?:[0-9]{8})$/;
         return phoneRegex.test(value.replace(/\s/g, ''));
       },
@@ -49,30 +51,30 @@ export class Validator {
     };
   }
 
-  static minLength(min: number, message?: string): ValidationRule<string> {
+  static minLength(min: number, message?: string): ValidationRule<string | undefined> {
     return {
-      validate: (value: string) => value.length >= min,
+      validate: (value: string | undefined) => !!value && value.length >= min,
       message: message || `Minimum ${min} caractères requis`
     };
   }
 
-  static maxLength(max: number, message?: string): ValidationRule<string> {
+  static maxLength(max: number, message?: string): ValidationRule<string | undefined> {
     return {
-      validate: (value: string) => value.length <= max,
+      validate: (value: string | undefined) => (value ?? '').length <= max,
       message: message || `Maximum ${max} caractères autorisés`
     };
   }
 
-  static pattern(regex: RegExp, message: string): ValidationRule<string> {
+  static pattern(regex: RegExp, message: string): ValidationRule<string | undefined> {
     return {
-      validate: (value: string) => regex.test(value),
+      validate: (value: string | undefined) => !!value && regex.test(value),
       message
     };
   }
 
-  static oneOf<T>(options: T[], message?: string): ValidationRule<T> {
+  static oneOf<T>(options: T[], message?: string): ValidationRule<T | '' | undefined> {
     return {
-      validate: (value: T) => options.includes(value),
+      validate: (value: T | '' | undefined) => value !== '' && value !== undefined && options.includes(value as T),
       message: message || `Valeur doit être parmi: ${options.join(', ')}`
     };
   }
@@ -122,6 +124,10 @@ export function validateSchema<T extends Record<string, any>>(
 /**
  * Schémas de validation prédéfinis
  */
+
+// Options typées explicitement pour le champ project ('' | ServiceCategory)
+const PROJECT_OPTIONS = (['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as const) as unknown as ('' | import('@/lib/types').ServiceCategory)[];
+
 export const contactFormSchema: ValidationSchema<ContactFormData> = {
   name: [
     Validator.required('Le nom est requis'),
@@ -133,14 +139,22 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
     Validator.email('Format d\'email invalide')
   ],
   phone: [
-    Validator.custom(
-      (value: string) => !value || Validator.phone().validate(value),
+    Validator.custom<string | undefined>(
+      (value) => !value || Validator.phone().validate(value),
       'Format de téléphone invalide'
     )
   ],
   project: [
-    Validator.required('Le type de projet est requis'),
-    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'])
+    Validator.required<'' | import('@/lib/types').ServiceCategory>('Le type de projet est requis'),
+    // Utiliser une règle custom typée exactement pour éviter les soucis d'inférence TS
+    Validator.custom<'' | import('@/lib/types').ServiceCategory>(
+      (v) =>
+        v !== '' &&
+        (['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'] as const).includes(
+          v as import('@/lib/types').ServiceCategory
+        ),
+      'Valeur invalide pour le type de projet'
+    )
   ],
   budget: [
     Validator.required('Le budget est requis')
@@ -151,6 +165,9 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
     Validator.maxLength(1000, 'Le message ne peut pas dépasser 1000 caractères')
   ]
 };
+
+// Options autorisées pour France Num (sous-ensemble de ServiceCategory)
+const FRANCE_NUM_PROJECT_TYPES = ['vitrine', 'ecommerce', 'application', 'refonte'] as const;
 
 export const franceNumFormSchema: ValidationSchema<FranceNumFormData> = {
   companySize: [
@@ -165,8 +182,14 @@ export const franceNumFormSchema: ValidationSchema<FranceNumFormData> = {
     Validator.required('La localisation est requise')
   ],
   projectType: [
-    Validator.required('Le type de projet est requis'),
-    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte'])
+    Validator.required<'' | import('@/lib/types').ServiceCategory>('Le type de projet est requis'),
+    // Règle custom avec includes typé en string pour éviter l'erreur TS2345
+    Validator.custom<'' | import('@/lib/types').ServiceCategory>(
+      (v) =>
+        v !== '' &&
+        (FRANCE_NUM_PROJECT_TYPES as readonly string[]).includes(v as string),
+      'Valeur invalide pour le type de projet'
+    )
   ],
   budget: [
     Validator.required('Le budget est requis')

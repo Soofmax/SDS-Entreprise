@@ -58,7 +58,9 @@ class MemoryStore {
   // Nettoyer périodiquement les entrées expirées
   cleanup(): void {
     const now = Date.now();
-    for (const [key, data] of this.store.entries()) {
+    // Convert Map iterator to an array to avoid downlevel iteration issues with ES5 target
+    const entries = Array.from(this.store.entries());
+    for (const [key, data] of entries) {
       if (data.resetTime < now) {
         this.store.delete(key);
       }
