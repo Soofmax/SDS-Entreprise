@@ -19,15 +19,16 @@ export const initGA = (): void => {
     script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`;
     document.head.appendChild(script);
 
-    // Initialiser gtag
-    window.gtag = window.gtag || function() {
-      (window.gtag.q = window.gtag.q || []).push(arguments);
+    // Initialiser gtag (cast pour éviter les erreurs TS sur propriétés q/l du shim)
+    const w = window as unknown as { gtag: ((...args: any[]) => void) & { q?: any[]; l?: number } };
+    w.gtag = w.gtag || function () {
+      (w.gtag.q = w.gtag.q || []).push(arguments);
     };
-    window.gtag.l = +new Date();
+    w.gtag.l = +new Date();
 
     // Configuration GA4
-    window.gtag('js', new Date());
-    window.gtag('config', GA_TRACKING_ID, {
+    w.gtag('js', new Date());
+    w.gtag('config', GA_TRACKING_ID, {
       page_title: document.title,
       page_location: window.location.href,
       anonymize_ip: true, // Conformité RGPD

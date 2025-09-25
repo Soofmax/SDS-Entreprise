@@ -1,4 +1,5 @@
 // Service Worker et PWA utilities
+import { useEffect, useState } from 'react';
 
 export interface PWAInstallPrompt {
   prompt(): Promise<void>;

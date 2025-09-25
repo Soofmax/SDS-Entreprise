@@ -55,25 +55,47 @@ export async function POST(request: NextRequest) {
   }
 }
 
+function mapPackageToProjectType(pkg?: string) {
+  switch (pkg) {
+    case 'BOUTIQUE':
+      return 'ECOMMERCE';
+    case 'ESSENTIEL':
+    case 'PROFESSIONNEL':
+      return 'SITE_VITRINE';
+    default:
+      return 'OTHER';
+  }
+}
+
+async function getAdminUserId(): Promise<string | null> {
+  if (process.env.ADMIN_USER_ID) return process.env.ADMIN_USER_ID;
+  const admin = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+  return admin?.id || null;
+}
+
 async function handleChargeCreated(charge: any) {
   try {
     // Log charge creation
     console.log(`Crypto charge created: ${charge.id}`);
-    
-    // Store in database for tracking
-    await prisma.invoice.create({
+
+    const amountFloat = parseFloat(charge?.pricing?.local?.amount);
+    const currency = charge?.pricing?.local?.currency;
+
+    // Log event in AnalyticsEvent (standardized)
+    await prisma.analyticsEvent.create({
       data: {
-        stripeInvoiceId: charge.id,
-        amount: parseFloat(charge.pricing.local.amount) * 100, // Convert to cents
-        currency: charge.pricing.local.currency,
-        status: 'PENDING',
-        paymentMethod: 'CRYPTO',
-        metadata: {
+        name: 'crypto_charge_created',
+        category: 'payment',
+        sessionId: charge.id,
+        page: '/api/crypto/webhook',
+        properties: {
           coinbaseChargeId: charge.id,
-          packageType: charge.metadata.package,
-          customerEmail: charge.metadata.customer_email,
-          customerName: charge.metadata.customer_name,
-          paymentType: 'coinbase_commerce'
+          packageType: charge?.metadata?.package,
+          customerEmail: charge?.metadata?.customer_email,
+          customerName: charge?.metadata?.customer_name,
+          amount: amountFloat,
+          currency,
+          provider: 'coinbase_commerce'
         }
       }
     });
@@ -87,91 +109,126 @@ async function handleChargeConfirmed(charge: any) {
   try {
     console.log(`Crypto payment confirmed: ${charge.id}`);
     
-    // Update invoice status
+    const amountFloat = parseFloat(charge?.pricing?.local?.amount);
+    const amountCents = isNaN(amountFloat) ? 0 : Math.round(amountFloat * 100);
+    const currency = charge?.pricing?.local?.currency;
+    const packageType = charge?.metadata?.package as string | undefined;
+    const customerEmail = charge?.metadata?.customer_email as string | undefined;
+    const customerName = charge?.metadata?.customer_name as string | undefined;
+
+    // Update any existing invoice to PAID
     await prisma.invoice.updateMany({
-      where: {
-        stripeInvoiceId: charge.id
-      },
-      data: {
-        status: 'PAID',
-        paidAt: new Date()
-      }
+      where: { stripeInvoiceId: charge.id },
+      data: { status: 'PAID', paidDate: new Date() }
     });
 
-    // Extract payment details
-    const payment = charge.payments?.[0];
-    const packageType = charge.metadata.package;
-    const customerEmail = charge.metadata.customer_email;
-    const customerName = charge.metadata.customer_name;
-
-    // Create or update contact
-    let contact = null;
+    // Create or update contact (email is not unique in schema => manual upsert)
+    let contactId: string | null = null;
     if (customerEmail) {
-      contact = await prisma.contact.upsert({
-        where: { email: customerEmail },
+      const existing = await prisma.contact.findFirst({ where: { email: customerEmail } });
+      if (existing) {
+        const updated = await prisma.contact.update({
+          where: { id: existing.id },
+          data: {
+            status: 'WON',
+            ...(customerName ? { name: customerName } : {}),
+            source: 'CRYPTO_PAYMENT'
+          }
+        });
+        contactId = updated.id;
+      } else {
+        const created = await prisma.contact.create({
+          data: {
+            name: customerName || 'Client Crypto',
+            email: customerEmail,
+            message: `Commande ${packageType || ''} payée via crypto`,
+            projectType: mapPackageToProjectType(packageType) as any,
+            budget: amountFloat ? Math.round(amountFloat) : 0,
+            status: 'WON',
+            source: 'CRYPTO_PAYMENT'
+          }
+        });
+        contactId = created.id;
+      }
+    }
+
+    // Create project and invoice if we have an admin user and contact
+    const adminUserId = await getAdminUserId();
+    if (adminUserId && contactId) {
+      // Project upsert based on unique contactId
+      const project = await prisma.project.upsert({
+        where: { contactId: contactId },
         update: {
-          status: 'WON',
-          notes: `Crypto payment confirmed for ${packageType} package`
+          status: 'IN_PROGRESS',
+          budget: amountFloat ? Math.round(amountFloat) : 0
         },
         create: {
-          name: customerName || 'Crypto Customer',
-          email: customerEmail,
-          status: 'WON',
-          projectType: packageType,
-          budget: parseFloat(charge.pricing.local.amount),
-          source: 'CRYPTO_PAYMENT',
-          notes: `Crypto payment confirmed for ${packageType} package`
+          title: `${packageType || 'Package'} - ${customerName || 'Client Crypto'}`,
+          description: `Projet créé depuis un paiement crypto confirmé (Coinbase).`,
+          type: mapPackageToProjectType(packageType) as any,
+          contactId: contactId,
+          budget: amountFloat ? Math.round(amountFloat) : 0,
+          timeline: packageType === 'ESSENTIEL' ? 10 : packageType === 'PROFESSIONNEL' ? 14 : 21,
+          technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Prisma'],
+          features: packageType === 'BOUTIQUE' 
+            ? ['E-commerce', 'Gestion stocks', 'Paiements', 'Analytics']
+            : packageType === 'PROFESSIONNEL'
+            ? ['CMS', 'Réservation', 'Analytics', 'SEO']
+            : ['Design responsive', 'SEO', 'Contact'],
+          userId: adminUserId
         }
       });
-    }
 
-    // Create project automatically
-    if (contact) {
-      await prisma.project.create({
-        data: {
-          title: `${packageType} - ${customerName || 'Crypto Customer'}`,
-          description: `Project created from crypto payment for ${packageType} package`,
-          status: 'PLANNING',
-          priority: 'MEDIUM',
-          budget: parseFloat(charge.pricing.local.amount),
-          contactId: contact.id,
-          startDate: new Date(),
-          metadata: {
-            paymentMethod: 'crypto',
-            coinbaseChargeId: charge.id,
-            transactionHash: payment?.transaction_id,
-            cryptoCurrency: payment?.value?.crypto?.currency,
-            cryptoAmount: payment?.value?.crypto?.amount
-          }
+      // Upsert invoice by unique number
+      const invoiceNumber = `CB-${charge.id}`;
+      await prisma.invoice.upsert({
+        where: { number: invoiceNumber },
+        update: {
+          status: 'PAID',
+          paidDate: new Date(),
+          total: amountCents,
+          taxAmount: 0,
+          subtotal: amountCents
+        },
+        create: {
+          number: invoiceNumber,
+          projectId: project.id,
+          subtotal: amountCents,
+          taxRate: 0,
+          taxAmount: 0,
+          total: amountCents,
+          status: 'PAID',
+          paidDate: new Date(),
+          stripeInvoiceId: charge.id,
+          dueDate: new Date()
         }
       });
+    } else {
+      if (!adminUserId) {
+        console.warn('No admin user found; skipping project/invoice creation for crypto payment.');
+      }
+      if (!contactId) {
+        console.warn('No contact email provided; skipping project/invoice creation for crypto payment.');
+      }
     }
 
-    // Send confirmation email (if email service is configured)
-    if (customerEmail) {
-      await sendCryptoPaymentConfirmation({
-        email: customerEmail,
-        name: customerName,
-        packageType,
-        amount: charge.pricing.local.amount,
-        currency: charge.pricing.local.currency,
-        transactionHash: payment?.transaction_id,
-        cryptoCurrency: payment?.value?.crypto?.currency,
-        cryptoAmount: payment?.value?.crypto?.amount
-      });
-    }
+    const payment = charge?.payments?.[0];
 
-    // Update analytics
+    // Log confirmed payment
     await prisma.analyticsEvent.create({
       data: {
-        eventType: 'CRYPTO_PAYMENT_CONFIRMED',
-        eventData: {
+        name: 'crypto_payment_confirmed',
+        category: 'payment',
+        sessionId: charge.id,
+        page: '/api/crypto/webhook',
+        properties: {
           packageType,
-          amount: parseFloat(charge.pricing.local.amount),
-          currency: charge.pricing.local.currency,
+          amount: amountFloat,
+          currency,
           cryptoCurrency: payment?.value?.crypto?.currency,
           cryptoAmount: payment?.value?.crypto?.amount,
-          paymentMethod: 'coinbase_commerce'
+          transactionHash: payment?.transaction_id,
+          provider: 'coinbase_commerce'
         }
       }
     });
@@ -185,25 +242,29 @@ async function handleChargeFailed(charge: any) {
   try {
     console.log(`Crypto payment failed: ${charge.id}`);
     
-    // Update invoice status
+    // Update invoice status if exists
     await prisma.invoice.updateMany({
       where: {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'FAILED'
+        status: 'CANCELLED'
       }
     });
 
-    // Update analytics
+    // Log failure
     await prisma.analyticsEvent.create({
       data: {
-        eventType: 'CRYPTO_PAYMENT_FAILED',
-        eventData: {
-          packageType: charge.metadata.package,
-          amount: parseFloat(charge.pricing.local.amount),
-          currency: charge.pricing.local.currency,
-          reason: 'payment_failed'
+        name: 'crypto_payment_failed',
+        category: 'payment',
+        sessionId: charge.id,
+        page: '/api/crypto/webhook',
+        properties: {
+          packageType: charge?.metadata?.package,
+          amount: parseFloat(charge?.pricing?.local?.amount),
+          currency: charge?.pricing?.local?.currency,
+          reason: 'payment_failed',
+          provider: 'coinbase_commerce'
         }
       }
     });
@@ -217,13 +278,13 @@ async function handleChargeDelayed(charge: any) {
   try {
     console.log(`Crypto payment delayed: ${charge.id}`);
     
-    // Update invoice status
+    // Reflect delayed as SENT (in-progress) if invoice exists
     await prisma.invoice.updateMany({
       where: {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'PROCESSING'
+        status: 'SENT'
       }
     });
 
@@ -236,13 +297,12 @@ async function handleChargePending(charge: any) {
   try {
     console.log(`Crypto payment pending: ${charge.id}`);
     
-    // Update invoice status
     await prisma.invoice.updateMany({
       where: {
         stripeInvoiceId: charge.id
       },
       data: {
-        status: 'PENDING'
+        status: 'SENT'
       }
     });
 
@@ -263,34 +323,8 @@ async function sendCryptoPaymentConfirmation(data: {
 }) {
   try {
     // Send email confirmation
-    // This would integrate with your email service (Resend, etc.)
+    // Integrate with email service as needed
     console.log('Sending crypto payment confirmation email to:', data.email);
-    
-    // Example email content
-    const emailContent = `
-      Bonjour ${data.name || 'Client'},
-      
-      Votre paiement crypto a été confirmé avec succès !
-      
-      Détails de la commande :
-      - Package : ${data.packageType}
-      - Montant : ${data.amount} ${data.currency}
-      - Crypto payée : ${data.cryptoAmount} ${data.cryptoCurrency}
-      - Transaction : ${data.transactionHash}
-      
-      Nous allons commencer votre projet dans les plus brefs délais.
-      
-      Cordialement,
-      L'équipe SDS
-    `;
-
-    // Here you would call your email service
-    // await emailService.send({
-    //   to: data.email,
-    //   subject: 'Confirmation de paiement crypto - SDS',
-    //   text: emailContent
-    // });
-
   } catch (error) {
     console.error('Error sending confirmation email:', error);
   }

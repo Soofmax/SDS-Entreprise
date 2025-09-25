@@ -18,7 +18,10 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  passwordHash  String?
   role          Role      @default(USER)
+  active        Boolean   @default(true)
+  lastLoginAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -253,6 +256,42 @@ model Newsletter {
   @@map("newsletter")
 }
 
+// Logs d'erreurs applicatives
+model ErrorLog {
+  id        String   @id @default(cuid())
+  code      String
+  message   String
+  severity  String
+  details   Json?
+  userAgent String?
+  ipAddress String?
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@map("error_logs")
+}
+
+// Un modèle d'événements analytics générique pour compatibilité avec le code existant
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+
+  // Informations de l'événement
+  name       String
+  category   String
+  properties Json?
+
+  // Métadonnées de session
+  sessionId  String?
+  userId     String?
+  userAgent  String?
+  ipAddress  String?
+  referrer   String?
+  page       String?
+
+  @@map("analytics_events")
+}
+
 // Enums
 enum Role {
   USER
@@ -308,8 +347,11 @@ enum Priority {
 
 enum InvoiceStatus {
   DRAFT
+  PENDING
+  PROCESSING
   SENT
   PAID
+  FAILED
   OVERDUE
   CANCELLED
 }

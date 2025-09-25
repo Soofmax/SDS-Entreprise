@@ -2,6 +2,10 @@
   "name": "nextjs",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20 <23",
+    "npm": ">=10"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -22,7 +26,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "analyze": "cross-env ANALYZE=true next build",
-    "prepare": "husky install",
+    "prepare": "sh -c 'if [ \"$CI\" = \"true\" ] || [ \"$NETLIFY\" = \"true\" ] || [ \"$HUSKY\" = \"0\" ]; then echo \"Skip husky on CI\"; else npx husky install; fi'",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "security:audit": "npm audit",
@@ -103,5 +107,16 @@
     "uuid": "^11.1.0",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "vitest": "^1.6.0",
+    "@vitest/ui": "^1.6.0",
+    "playwright": "^1.46.0",
+    "tsx": "^4.19.0",
+    "cross-env": "^7.0.3",
+    "prettier": "^3.3.3",
+    "@lhci/cli": "^0.13.0",
+    "@netlify/plugin-nextjs": "^5.8.1"
   }
 }

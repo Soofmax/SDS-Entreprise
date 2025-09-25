@@ -1,28 +1,26 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions, getServerSession, type DefaultSession } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import { prisma } from '@/lib/db/client';
 import bcrypt from 'bcryptjs';
-import { User, UserRole } from '@prisma/client';
+import type { User } from '@prisma/client';
+import { Role } from '@prisma/client';
+import { useSession } from 'next-auth/react';
 
-// Types étendus pour NextAuth
+// Types étendus pour NextAuth (ne pas changer les types natifs, on ajoute des champs)
 declare module 'next-auth' {
   interface Session {
-    user: {
+    user: DefaultSession['user'] & {
       id: string;
-      email: string;
-      name: string;
-      role: UserRole;
+      role: Role;
       active: boolean;
     };
   }
 
   interface User {
     id: string;
-    email: string;
-    name: string;
-    role: UserRole;
+    role: Role;
     active: boolean;
   }
 }
@@ -30,7 +28,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    role: UserRole;
+    role: Role;
     active: boolean;
   }
 }
@@ -122,7 +120,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.active = user.active;
+        token.active = user.active ?? true;
       }
 
       // Vérifier si l'utilisateur est toujours actif
@@ -134,14 +132,18 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!dbUser || !dbUser.active) {
-            return null; // Force la déconnexion
+            // Ne pas retourner null (incompatible avec Awaitable<JWT>)
+            // On marque le token comme inactif et on laisse la session callback le refuser
+            token.active = false;
+            return token;
           }
 
           token.active = dbUser.active;
           token.role = dbUser.role;
         } catch (error) {
           console.error('Erreur vérification utilisateur:', error);
-          return null;
+          token.active = false;
+          return token;
         }
       }
 
@@ -149,10 +151,11 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
+      // Si l'utilisateur est marqué inactif, refléter l'état dans la session
       if (token) {
         session.user.id = token.id;
         session.user.role = token.role;
-        session.user.active = token.active;
+        session.user.active = token.active ?? true;
       }
       return session;
     },
@@ -238,7 +241,7 @@ export async function createUser(
   email: string,
   name: string,
   password: string,
-  role: UserRole = 'ADMIN'
+  role: Role = Role.ADMIN
 ): Promise<User> {
   const passwordHash = await bcrypt.hash(password, 12);
   
@@ -276,7 +279,7 @@ export async function toggleUserStatus(
 }
 
 // Middleware pour vérifier les permissions
-export function requireAuth(roles?: UserRole[]) {
+export function requireAuth(roles?: Role[]) {
   return async (req: any, res: any, next: any) => {
     const session = await getServerSession(authOptions);
     

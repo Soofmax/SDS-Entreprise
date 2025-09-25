@@ -105,27 +105,38 @@ export async function GET(request: NextRequest) {
     // Données spécifiques admin
     let adminData = {};
     if (isAdmin) {
-      // Utilisateurs actifs récents
-      const recentUsers = await prisma.analytics.findMany({
+      // Utilisateurs actifs récents (récupération sans relation Prisma directe)
+      const recentEvents = await prisma.analytics.findMany({
         where: {
           createdAt: {
             gte: new Date(now.getTime() - 60 * 60 * 1000), // Dernière heure
           },
           userId: { not: null },
         },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
+        select: {
+          userId: true,
+          page: true,
+          createdAt: true,
         },
         orderBy: {
           createdAt: 'desc',
         },
         take: 10,
       });
+
+      // Récupérer les informations des utilisateurs correspondants
+      const userIds = Array.from(
+        new Set(recentEvents.map(e => e.userId).filter((id): id is string => !!id))
+      );
+
+      const users = userIds.length
+        ? await prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, name: true, email: true },
+          })
+        : [];
+
+      const userMap = new Map(users.map(u => [u.id, { name: u.name, email: u.email }]));
 
       // Sources de trafic (basé sur referrer)
       const trafficSources = await prisma.analytics.groupBy({
@@ -137,14 +148,19 @@ export async function GET(request: NextRequest) {
         _count: {
           id: true,
         },
+        orderBy: {
+          _count: {
+            id: 'desc',
+          },
+        },
         take: 10,
       });
 
       adminData = {
-        recentUsers: recentUsers.map(event => ({
-          user: event.user,
-          page: event.page,
-          timestamp: event.createdAt,
+        recentUsers: recentEvents.map(ev => ({
+          user: ev.userId ? userMap.get(ev.userId) ?? null : null,
+          page: ev.page,
+          timestamp: ev.createdAt,
         })),
         trafficSources: trafficSources.map(source => {
           const properties = source.properties as any;

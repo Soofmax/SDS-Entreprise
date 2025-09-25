@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -16,11 +16,13 @@ export async function disconnectPrisma() {
   await prisma.$disconnect();
 }
 
-// Helper pour les transactions
+// Helper pour les transactions (utilise TransactionClient)
 export async function withTransaction<T>(
-  fn: (prisma: PrismaClient) => Promise<T>
+  fn: (tx: Prisma.TransactionClient) => Promise<T>
 ): Promise<T> {
-  return await prisma.$transaction(fn);
+  return prisma.$transaction(async (tx) => {
+    return fn(tx);
+  });
 }
 
 // Helper pour les requêtes avec retry
@@ -47,7 +49,7 @@ export async function withRetry<T>(
 }
 
 // Types utiles
-export type PrismaTransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+export type PrismaTransactionClient = Prisma.TransactionClient;
 
 export default prisma;
 

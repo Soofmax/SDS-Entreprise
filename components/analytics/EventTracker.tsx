@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { trackEvents } from '@/lib/analytics/gtag';
+import { trackEvents, trackEvent } from '@/lib/analytics/gtag';
 import { useCookieConsent } from '@/lib/hooks/useCookieConsent';
 
 interface EventTrackerProps {
@@ -69,28 +69,28 @@ export default function EventTracker({ children }: EventTrackerProps) {
         
         // Tracker les jalons de scroll
         if (scrollPercent >= 25 && maxScroll < 25) {
-          trackEvents.trackEvent({
+          trackEvent({
             action: 'scroll_depth',
             category: 'engagement',
             label: '25%',
             value: 25,
           });
         } else if (scrollPercent >= 50 && maxScroll < 50) {
-          trackEvents.trackEvent({
+          trackEvent({
             action: 'scroll_depth',
             category: 'engagement',
             label: '50%',
             value: 50,
           });
         } else if (scrollPercent >= 75 && maxScroll < 75) {
-          trackEvents.trackEvent({
+          trackEvent({
             action: 'scroll_depth',
             category: 'engagement',
             label: '75%',
             value: 75,
           });
         } else if (scrollPercent >= 90 && maxScroll < 90) {
-          trackEvents.trackEvent({
+          trackEvent({
             action: 'scroll_depth',
             category: 'engagement',
             label: '90%',
@@ -107,21 +107,21 @@ export default function EventTracker({ children }: EventTrackerProps) {
       
       // Tracker les jalons de temps
       if (timeOnPage === 30) {
-        trackEvents.trackEvent({
+        trackEvent({
           action: 'time_on_page',
           category: 'engagement',
           label: '30_seconds',
           value: 30,
         });
       } else if (timeOnPage === 60) {
-        trackEvents.trackEvent({
+        trackEvent({
           action: 'time_on_page',
           category: 'engagement',
           label: '1_minute',
           value: 60,
         });
       } else if (timeOnPage === 180) {
-        trackEvents.trackEvent({
+        trackEvent({
           action: 'time_on_page',
           category: 'engagement',
           label: '3_minutes',

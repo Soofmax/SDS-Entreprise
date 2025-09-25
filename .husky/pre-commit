@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Husky pre-commit: running quality checks..."
+
+# Lint
+npm run lint || exit 1
+
+# Type check
+npm run type-check || exit 1
+
+# Prettier check
+npm run format:check || exit 1
+
+echo "Pre-commit checks passed."

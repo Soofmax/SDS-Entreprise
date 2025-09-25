@@ -72,19 +72,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
 
-  // Redirection si non authentifié
-  if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-magenta"></div>
-    </div>;
-  }
-
-  if (!session || session.user.role !== 'ADMIN') {
-    redirect('/auth/signin');
-  }
-
-  // Charger les données du dashboard
+  // Charger les données du dashboard (les hooks doivent être appelés avant tout return conditionnel)
   useEffect(() => {
+    // Ne pas charger tant que non authentifié
+    if (status !== 'authenticated' || !session || session.user.role !== 'ADMIN') {
+      return;
+    }
+
     async function loadDashboardData() {
       try {
         setLoading(true);
@@ -118,7 +112,18 @@ export default function AdminDashboard() {
     }
 
     loadDashboardData();
-  }, [timeRange]);
+  }, [timeRange, status, session]);
+
+  // Redirection si non authentifié
+  if (status === 'loading') {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-magenta"></div>
+    </div>;
+  }
+
+  if (!session || session.user.role !== 'ADMIN') {
+    redirect('/auth/signin');
+  }
 
   if (loading) {
     return <AdminDashboardSkeleton />;

@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
           message: error instanceof Error ? error.message : 'Erreur inconnue',
           severity: 'high',
           details: {
-            error: error instanceof Error ? error.stack : error,
+            error: error instanceof Error ? (error.stack ?? error.message) : String(error),
             endpoint: '/api/contact',
             method: 'POST',
           },

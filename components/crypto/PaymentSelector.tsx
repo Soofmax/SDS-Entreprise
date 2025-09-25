@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, Wallet, Bitcoin, Ethereum } from 'lucide-react';
+import { CreditCard, Wallet, Bitcoin } from 'lucide-react';
 import { CRYPTO_CONFIG } from '@/lib/crypto/config';
 import { coinbaseCommerce } from '@/lib/crypto/coinbase-commerce';
 import { web3Wallet } from '@/lib/crypto/web3-wallet';

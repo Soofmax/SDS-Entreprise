@@ -15,6 +15,7 @@ export interface CoinbaseChargeData {
     package: string;
     customer_email?: string;
     customer_name?: string;
+    source?: string;
   };
   redirect_url?: string;
   cancel_url?: string;
@@ -58,13 +59,13 @@ class CoinbaseCommerceService {
   constructor() {
     this.apiKey = process.env.COINBASE_COMMERCE_API_KEY || '';
     this.baseUrl = CRYPTO_CONFIG.API_ENDPOINTS.COINBASE_COMMERCE;
-    
-    if (!this.apiKey) {
-      console.warn('Coinbase Commerce API key not configured');
-    }
   }
 
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
+    if (!this.apiKey) {
+      throw new Error('Coinbase Commerce API key not configured');
+    }
+
     const url = `${this.baseUrl}${endpoint}`;
     
     const response = await fetch(url, {

@@ -24,8 +24,24 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// Types
+type ContactStatus = 'nouveau' | 'en_cours' | 'devis_envoye' | 'termine' | 'annule';
+
+interface Contact {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  project: string;
+  budget: string;
+  status: ContactStatus;
+  date: string; // ISO date string
+  message: string;
+}
+
 // Mock data pour les contacts
-const mockContacts = [
+const mockContacts: Contact[] = [
   {
     id: 1,
     name: 'Marie Dubois',
@@ -88,7 +104,7 @@ const mockContacts = [
   }
 ];
 
-const statusConfig = {
+const statusConfig: Record<ContactStatus, { label: string; color: string }> = {
   nouveau: { label: 'Nouveau', color: 'bg-blue-100 text-blue-800' },
   en_cours: { label: 'En cours', color: 'bg-green-100 text-green-800' },
   devis_envoye: { label: 'Devis envoyé', color: 'bg-yellow-100 text-yellow-800' },
@@ -98,9 +114,9 @@ const statusConfig = {
 
 export default function ContactsPage() {
   const { data: session } = useSession();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('tous');
-  const [selectedContact, setSelectedContact] = useState(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('tous');
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   if (!session) {
     return (
@@ -126,11 +142,12 @@ export default function ContactsPage() {
     );
   }
 
-  const filteredContacts = mockContacts.filter(contact => {
-    const matchesSearch = contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         contact.company.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'tous' || contact.status === statusFilter;
+  const filteredContacts = mockContacts.filter((contact) => {
+    const matchesSearch =
+      contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'tous' || contact.status === (statusFilter as ContactStatus);
     return matchesSearch && matchesStatus;
   });
 
@@ -213,8 +230,8 @@ export default function ContactsPage() {
                       </CardDescription>
                     </div>
                   </div>
-                  <Badge className={statusConfig[contact.status as keyof typeof statusConfig]?.color || 'bg-gray-100 text-gray-800'}>
-                    {statusConfig[contact.status as keyof typeof statusConfig]?.label || contact.status}
+                  <Badge className={statusConfig[contact.status]?.color || 'bg-gray-100 text-gray-800'}>
+                    {statusConfig[contact.status]?.label || contact.status}
                   </Badge>
                 </div>
               </CardHeader>

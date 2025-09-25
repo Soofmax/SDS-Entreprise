@@ -1,9 +1,10 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions, type DefaultSession } from 'next-auth';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/db/prisma';
+import { Role } from '@prisma/client';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -40,6 +41,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           image: user.image,
+          active: user.active ?? true,
         };
       }
     }),
@@ -64,8 +66,10 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       // Ajouter les informations utilisateur au token
       if (user) {
-        token.role = user.role;
+        token.role = user.role as Role;
         token.id = user.id;
+        // Valeur par défaut si non gérée ailleurs (fusion avec config.ts)
+        token.active = token.active ?? true;
       }
 
       // Si connexion via Google, créer/mettre à jour l'utilisateur
@@ -75,8 +79,12 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (existingUser) {
-          token.role = existingUser.role;
+          token.role = existingUser.role as Role;
           token.id = existingUser.id;
+          token.active = existingUser.active ?? true;
+        } else {
+          // Utilisateur nouvellement créé (rôle par défaut USER côté création)
+          token.active = true;
         }
       }
 
@@ -87,7 +95,8 @@ export const authOptions: NextAuthOptions = {
       // Ajouter les informations du token à la session
       if (token) {
         session.user.id = token.id as string;
-        session.user.role = token.role as string;
+        session.user.role = token.role as Role;
+        session.user.active = token.active ?? true;
       }
 
       return session;
@@ -131,8 +140,9 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
+    // NextAuth v4 doesn't support a "signUp" page option. Keep custom signup route outside NextAuth.
     error: '/auth/error',
+    // Other supported options (if needed): signOut, verifyRequest, newUser
   },
 
   events: {
@@ -147,27 +157,29 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
 };
 
-// Types pour TypeScript
+// Types pour TypeScript (alignés avec lib/auth/config.ts)
+// On étend sans modifier les types natifs NextAuth
 declare module 'next-auth' {
   interface Session {
-    user: {
+    user: DefaultSession['user'] & {
       id: string;
-      email: string;
-      name?: string;
-      image?: string;
-      role: string;
+      role: Role;
+      active: boolean;
     };
   }
 
   interface User {
-    role: string;
+    id: string;
+    role: Role;
+    active: boolean;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    role: string;
     id: string;
+    role: Role;
+    active: boolean;
   }
 }
 

@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
-
 :root {
   --background: 0 0% 100%;
   --foreground: 0 0% 3.9%;
@@ -30,6 +28,10 @@
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
   --radius: 0.75rem;
+
+  /* Font CSS variables (used by Tailwind config) */
+  --font-playfair: 'Playfair Display';
+  --font-montserrat: 'Montserrat';
 }
 
 .dark {
