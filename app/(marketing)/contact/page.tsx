@@ -257,14 +257,14 @@ export default function ContactPage() {
             </div>
 
             {isSubmitted ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12" role="status" aria-live="polite">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-10 h-10 text-green-600" />
                 </div>
-                <h4 className="font-playfair text-2xl font-bold text-charcoal mb-4">
+                <h4 className="font-playfair text-2xl font-bold text-charcoal dark:text-cream mb-4">
                   Message Envoyé !
                 </h4>
-                <p className="text-charcoal/80 mb-6">
+                <p className="text-charcoal/80 dark:text-cream/80 mb-6">
                   Merci pour votre message. Je vous réponds sous 24h maximum.
                 </p>
                 <Button 
@@ -291,6 +291,7 @@ export default function ContactPage() {
                       required
                       aria-required="true"
                       aria-describedby="name-help"
+                      autoComplete="name"
                       className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                       placeholder="Votre nom et prénom"
                     />
@@ -312,8 +313,8 @@ export default function ContactPage() {
                       required
                       aria-required="true"
                       aria-describedby="email-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
-                      placeholder="votre@email.com"
+                      autoComplete="email"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magentare@email.com"
                     />
                     <div id="email-help" className="text-xs text-charcoal/60 mt-1">
                       Adresse email pour vous envoyer le devis et communiquer
@@ -332,6 +333,7 @@ export default function ContactPage() {
                     value={formData.phone}
                     onChange={handleInputChange}
                     aria-describedby="phone-help"
+                    autoComplete="tel"
                     className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                     placeholder="+33 6 XX XX XX XX"
                   />

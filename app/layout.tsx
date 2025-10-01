@@ -85,11 +85,13 @@ export default function RootLayout({
           "bg-cream text-charcoal dark:bg-gray-950 dark:text-cream font-montserrat antialiased" // <-- 4. Classes plus propres + dark mode global
         )}
       >
+        {/* Skip link pour WCAG */}
+        <a href="#main" className="skip-link">Aller au contenu principal</a>
         <AccessibilityProvider>
           <Providers>
             <EventTracker>
               <Header />
-              <main className="pt-20"> {/* Ajusté à 5rem (80px) pour un header un peu plus haut */}
+              <main id="main" className="pt-20" tabIndex={-1}> {/* Ajusté à 5rem (80px) pour un header un peu plus haut */}
                 {children}
               </main>
               <Footer />
