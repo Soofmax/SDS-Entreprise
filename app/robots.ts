@@ -161,12 +161,9 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     
-    // Sitemaps
+    // Sitemaps (simplifié pour éviter les 404 tant que non générés)
     sitemap: [
       `${baseUrl}/sitemap.xml`,
-      `${baseUrl}/sitemap-images.xml`,
-      `${baseUrl}/sitemap-videos.xml`,
-      `${baseUrl}/sitemap-news.xml`,
     ],
     
     // Host (optionnel, pour spécifier le domaine principal)
