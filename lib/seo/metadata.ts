@@ -5,7 +5,7 @@ export const siteConfig = {
   name: 'Smarter Logic Web.com',
   title: 'SLW - Solutions Web Glamour & Performantes',
   description: 'Agence web SLW (Smarter Logic Web.com) — sites vitrines, e-commerce, applications web avec design sur-mesure. Aides publiques France Num jusqu\'à 5000€.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://slw.com',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://smarterlogicweb.com',
   ogImage: '/og-image.jpg',
   creator: 'SLW',
   keywords: [
