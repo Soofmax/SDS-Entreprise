@@ -35,24 +35,25 @@
 }
 
 .dark {
-  --background: 0 0% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 3.9%;
+  /* Palette sombre avec contrastes AA/AAA */
+  --background: 220 13% 18%;           /* gris très foncé, évite le #000 pur pour le confort */
+  --foreground: 0 0% 98%;              /* texte principal clair */
+  --card: 220 13% 20%;
   --card-foreground: 0 0% 98%;
-  --popover: 0 0% 3.9%;
+  --popover: 220 13% 18%;
   --popover-foreground: 0 0% 98%;
-  --primary: 341 65% 58%;
+  --primary: 341 65% 58%;              /* conserve la marque */
   --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 14.9%;
+  --secondary: 220 13% 26%;
   --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 14.9%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 0 0% 14.9%;
+  --muted: 220 13% 24%;
+  --muted-foreground: 0 0% 85%;
+  --accent: 220 13% 24%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
+  --destructive: 0 62.8% 40%;          /* plus visible en sombre */
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 14.9%;
-  --input: 0 0% 14.9%;
+  --border: 220 13% 30%;               /* bordures visibles en sombre */
+  --input: 220 13% 26%;
   --ring: 341 65% 58%;
 }
 
@@ -61,7 +62,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-cream text-charcoal;
+    /* Utilise les variables de thème pour un mode sombre cohérent */
+    @apply bg-background text-foreground;
     font-family: var(--font-montserrat), sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {

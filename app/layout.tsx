@@ -79,10 +79,12 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Permet au navigateur d'utiliser le rendu natif des thèmes clair/sombre */}
+        <meta name="color-scheme" content="light dark" />
       </head>
       <body 
         className={cn(
-          "bg-cream text-charcoal dark:bg-gray-950 dark:text-cream font-montserrat antialiased" // <-- 4. Classes plus propres + dark mode global
+          "min-h-screen bg-background text-foreground font-montserrat antialiased"
         )}
       >
         <AccessibilityProvider>
