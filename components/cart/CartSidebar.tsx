@@ -133,46 +133,26 @@ export function CartSidebar() {
           {/* Footer */}
           {services.length > 0 && (
             <div className="border-t border-rose-powder/30 p-6 space-y-3">
-              {!user && (
-                <p className="text-xs text-charcoal/60 text-center mb-4">
-                  Vous devez être connecté pour procéder au paiement
-                </p>
-              )}
-              
               <div className="space-y-2">
-                {/* Stripe Payment */}
-                <Link href={user ? "/checkout" : "/auth/signin"}>
+                {/* Devis par contact */}
+                <Link href={`/contact?total=${(total * 1.2).toFixed(0)}`}>
                   <Button 
                     className="w-full bg-gradient-rose hover:opacity-90 text-white shadow-rose"
-                    disabled={!user}
                   >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Payer par Carte ({(total * 1.2).toLocaleString('fr-FR')}€)
+                    Demander un devis ({(total * 1.2).toLocaleString('fr-FR')}€ TTC)
                   </Button>
                 </Link>
 
-                {/* Web3 Payment */}
-                <Link href={user ? "/checkout/web3" : "/auth/signin"}>
+                {/* Prendre rendez-vous */}
+                <Link href="/contact#rdv">
                   <Button 
                     variant="outline" 
                     className="w-full border-magenta text-magenta hover:bg-magenta hover:text-white"
-                    disabled={!user}
                   >
-                    <Wallet className="w-4 h-4 mr-2" />
-                    Payer en Crypto + NFT
+                    Prendre rendez-vous
                   </Button>
                 </Link>
               </div>
-
-              {!user && (
-                <div className="text-center">
-                  <Link href="/auth/signin">
-                    <Button variant="ghost" className="text-magenta hover:text-magenta/80">
-                      Se connecter
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </div>
           )}
         </div>

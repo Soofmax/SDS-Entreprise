@@ -254,15 +254,17 @@ export function PricingSection() {
                   </div>
 
                   {/* CTA Button */}
-                  <Button
-                    className={`w-full py-6 text-lg font-semibold rounded-2xl transition-all duration-300 ${
-                      pkg.popular
-                        ? 'bg-gradient-rose text-white hover:opacity-90 shadow-rose'
-                        : 'bg-white text-magenta border-2 border-magenta hover:bg-magenta hover:text-white'
-                    }`}
-                  >
-                    Choisir {pkg.name}
-                  </Button>
+                  <a href={`/contact?package=${pkg.id}`} className="block">
+                    <Button
+                      className={`w-full py-6 text-lg font-semibold rounded-2xl transition-all duration-300 ${
+                        pkg.popular
+                          ? 'bg-gradient-rose text-white hover:opacity-90 shadow-rose'
+                          : 'bg-white text-magenta border-2 border-magenta hover:bg-magenta hover:text-white'
+                      }`}
+                    >
+                      Demander un devis pour {pkg.name}
+                    </Button>
+                  </a>
                 </div>
               );
             })}

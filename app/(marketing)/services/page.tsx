@@ -201,15 +201,17 @@ export default function ServicesPage() {
                 </div>
 
                 {/* CTA Button */}
-                <Button
-                  className={`w-full py-6 text-lg font-semibold rounded-2xl transition-all duration-300 ${
-                    pkg.popular
-                      ? 'bg-gradient-rose text-white hover:opacity-90 shadow-rose'
-                      : 'bg-white text-magenta border-2 border-magenta hover:bg-magenta hover:text-white'
-                  }`}
-                >
-                  Choisir ce Package
-                </Button>
+                <Link href={`/contact?package=${pkg.id}`}>
+                  <Button
+                    className={`w-full py-6 text-lg font-semibold rounded-2xl transition-all duration-300 ${
+                      pkg.popular
+                        ? 'bg-gradient-rose text-white hover:opacity-90 shadow-rose'
+                        : 'bg-white text-magenta border-2 border-magenta hover:bg-magenta hover:text-white'
+                    }`}
+                  >
+                    Demander un devis
+                  </Button>
+                </Link>
               </div>
             ))}
           </div>
