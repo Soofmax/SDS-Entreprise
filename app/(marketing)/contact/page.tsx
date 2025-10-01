@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowDown, Sparkles, Star, Zap, Heart, Mail, Phone, MapPin, Clock, Send, MessageCircle, Calendar, Coffee, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 export default function ContactPage() {
   const [currentWord, setCurrentWord] = useState(0);
@@ -18,6 +19,7 @@ export default function ContactPage() {
     timeline: ''
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -25,6 +27,42 @@ export default function ContactPage() {
     }, 2000);
     return () => clearInterval(interval);
   }, [words.length]);
+
+  // Prefill from query params (?package=professionnel&total=6240)
+  useEffect(() => {
+    const pkg = searchParams.get('package') || '';
+    const totalParam = searchParams.get('total') || '';
+
+    // Map package -> project type
+    const packageToProject: Record<string, string> = {
+      essentiel: 'Site Vitrine',
+      professionnel: 'Site Vitrine',
+      boutique: 'E-commerce',
+    };
+
+    // Guess budget bucket from numeric total (EUR)
+    const computeBudgetBucket = (totalStr: string): string => {
+      const n = parseInt(totalStr, 10);
+      if (!isFinite(n) || n <= 0) return '';
+      if (n < 3000) return 'Moins de 3 000€';
+      if (n < 5000) return '3 000€ - 5 000€';
+      if (n < 10000) return '5 000€ - 10 000€';
+      if (n < 20000) return '10 000€ - 20 000€';
+      return 'Plus de 20 000€';
+    };
+
+    const projectPrefill = packageToProject[pkg] || '';
+    const budgetPrefill = computeBudgetBucket(totalParam);
+
+    if (projectPrefill || budgetPrefill) {
+      setFormData(prev => ({
+        ...prev,
+        project: projectPrefill || prev.project,
+        budget: budgetPrefill || prev.budget,
+        message: prev.message || (pkg ? `Package souhaité: ${pkg}` : ''),
+      }));
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -411,6 +449,52 @@ export default function ContactPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+
+        {/* RDV Section */}
+        <div id="rdv" className="max-w-4xl mx-auto mt-24">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-rose-powder/30 shadow-rose">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center space-x-2 bg-gradient-rose text-white rounded-full px-6 py-2 mb-6">
+                <Calendar className="w-5 h-5" aria-hidden="true" />
+                <span className="font-medium">Prendre Rendez-vous</span>
+              </div>
+              <h3 className="font-playfair text-3xl font-bold text-charcoal mb-4">
+                Échange de 20 minutes pour cadrer votre projet
+              </h3>
+              <p className="text-charcoal/80 text-lg leading-relaxed max-w-2xl mx-auto">
+                Choisissez un créneau pour discuter de vos besoins. Je vous propose une estimation et la meilleure approche dès l’appel.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <a
+                href={`mailto:contact@smarterlogicweb.com?subject=Prise de RDV SLW&body=${encodeURIComponent(
+                  `Bonjour,\n\nJe souhaite prendre rendez-vous pour discuter de mon projet.${formData.project ? `\nType de projet: ${formData.project}` : ''}${formData.budget ? `\nBudget: ${formData.budget}` : ''}\n\nCréneau préféré: __/__/____ à __:__\n\nMerci,`
+                )}`}
+                className="block"
+              >
+                <Button className="w-full bg-gradient-rose text-white hover:opacity-90">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Proposer un créneau
+                </Button>
+              </a>
+
+              <a href="tel:+33600000000" className="block">
+                <Button variant="outline" className="w-full border-magenta text-magenta hover:bg-magenta hover:text-white">
+                  <Phone className="w-4 h-4 mr-2" />
+                  Être rappelé(e)
+                </Button>
+              </a>
+
+              <Link href="#contact" className="block">
+                <Button variant="ghost" className="w-full text-magenta hover:text-magenta/80">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Continuer par message
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
