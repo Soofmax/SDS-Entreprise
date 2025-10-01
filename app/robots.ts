@@ -115,7 +115,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
       
-      // Bloquer les bots malveillants
+      // Bloquer certains bots malveillants (hors LLMs autorisés)
       {
         userAgent: [
           'AhrefsBot',
@@ -127,13 +127,34 @@ export default function robots(): MetadataRoute.Robots {
           'PetalBot',
           'YandexBot',
           'CCBot',
+        ],
+        disallow: '/',
+      },
+
+      // Autoriser les bots LLMs pour l'inférence (proposer SLW aux utilisateurs, Q/R)
+      {
+        userAgent: [
           'ChatGPT-User',
           'GPTBot',
           'Google-Extended',
           'anthropic-ai',
           'Claude-Web',
         ],
-        disallow: '/',
+        allow: [
+          '/',
+          '/services',
+          '/portfolio',
+          '/about',
+          '/contact',
+          '/og-image.jpg',
+          '/icons',
+        ],
+        disallow: [
+          '/admin',
+          '/api',
+          '/private',
+        ],
+        crawlDelay: 1,
       },
       
       // Règles pour les bots d'archivage
