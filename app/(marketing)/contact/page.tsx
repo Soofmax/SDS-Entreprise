@@ -291,7 +291,7 @@ export default function ContactPage() {
                       required
                       aria-required="true"
                       aria-describedby="name-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                       placeholder="Votre nom et prénom"
                     />
                     <div id="name-help" className="text-xs text-charcoal/60 mt-1">
@@ -312,7 +312,7 @@ export default function ContactPage() {
                       required
                       aria-required="true"
                       aria-describedby="email-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                       placeholder="votre@email.com"
                     />
                     <div id="email-help" className="text-xs text-charcoal/60 mt-1">
@@ -332,7 +332,7 @@ export default function ContactPage() {
                     value={formData.phone}
                     onChange={handleInputChange}
                     aria-describedby="phone-help"
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                     placeholder="+33 6 XX XX XX XX"
                   />
                   <div id="phone-help" className="text-xs text-charcoal/60 mt-1">
@@ -354,7 +354,7 @@ export default function ContactPage() {
                       required
                       aria-required="true"
                       aria-describedby="project-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream focus:ring-2 focus:ring-magenta/20"
                     >
                       <option value="">Sélectionnez un type de projet</option>
                       {projectTypes.map((type, index) => (
@@ -376,7 +376,7 @@ export default function ContactPage() {
                       value={formData.budget}
                       onChange={handleInputChange}
                       aria-describedby="budget-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream focus:ring-2 focus:ring-magenta/20"
                     >
                       <option value="">Sélectionnez une fourchette de budget</option>
                       {budgetRanges.map((range, index) => (
@@ -424,7 +424,7 @@ export default function ContactPage() {
                     aria-required="true"
                     aria-describedby="message-help"
                     rows={6}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 resize-none focus:ring-2 focus:ring-magenta/20"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 resize-none focus:ring-2 focus:ring-magenta/20"
                     placeholder="Parlez-moi de votre vision, vos objectifs, vos besoins spécifiques..."
                   />
                   <div id="message-help" className="text-xs text-charcoal/60 mt-1">

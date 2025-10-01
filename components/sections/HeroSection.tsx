@@ -18,7 +18,7 @@ export function HeroSection() {
   }, [words.length]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-cream">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-cream dark:bg-gray-950">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-20 left-10 animate-float">
