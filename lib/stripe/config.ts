@@ -16,8 +16,8 @@ export const stripe = (() => {
     }) as unknown as Stripe;
   }
   return new Stripe(key, {
-    // Keep API version consistent with lib/services/stripe.ts and CI requirement
-    apiVersion: '2025-08-27.basil',
+    // Keep API version consistent with lib/services/stripe.ts and with the installed SDK
+    apiVersion: '2024-06-20',
     typescript: true,
   });
 })();

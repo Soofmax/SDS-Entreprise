@@ -3,8 +3,8 @@ import { prisma } from '@/lib/db/client';
 
 // Configuration Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  // Align with the configured Stripe API version used across the project
-  apiVersion: '2025-08-27.basil',
+  // Use the SDK's latest supported API version for this package version
+  apiVersion: '2024-06-20',
   typescript: true,
 });
 
@@ -270,7 +270,7 @@ export async function createInvoice(
   }
 
   // Créer la facture
-  const invoice = await stripe.invoices.create({
+  const created = await stripe.invoices.create({
     customer: customerId,
     metadata: {
       ...metadata,
@@ -279,8 +279,17 @@ export async function createInvoice(
     auto_advance: false, // Ne pas envoyer automatiquement
   });
 
+  // Compatibility with Stripe newer TS types returning Response<T>
+  const invoiceId =
+    (created as any)?.id ??
+    (created as any)?.data?.id;
+
+  if (!invoiceId) {
+    throw new Error('Impossible de récupérer l’ID de la facture Stripe.');
+  }
+
   // Finaliser la facture
-  return stripe.invoices.finalizeInvoice(invoice.id as string);
+  return stripe.invoices.finalizeInvoice(invoiceId);
 }
 
 /**
