@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export function Footer() {
   return (
-    <footer className="bg-charcoal text-cream">
+    <footer className="bg-charcoal text-cream dark:bg-gray-950 dark:text-cream">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -20,13 +20,13 @@ export function Footer() {
               Transformons ensemble vos idées en expériences digitales exceptionnelles.
             </p>
             <div className="flex space-x-3">
-              <Button size="icon" variant="ghost" className="hover:bg-magenta/20 hover:text-rose-powder">
+              <Button size="icon" variant="ghost" className="hover:bg-magenta/20 hover:text-rose-powder dark:hover:bg-rose-900/30">
                 <Github className="w-4 h-4"  aria-hidden="true" />
               </Button>
-              <Button size="icon" variant="ghost" className="hover:bg-magenta/20 hover:text-rose-powder">
+              <Button size="icon" variant="ghost" className="hover:bg-magenta/20 hover:text-rose-powder dark:hover:bg-rose-900/30">
                 <Linkedin className="w-4 h-4" />
               </Button>
-              <Button size="icon" variant="ghost" className="hover:bg-magenta/20 hover:text-rose-powder">
+              <Button size="icon" variant="ghost" className="hover:bg-magenta/20 hover:text-rose-powder dark:hover:bg-rose-900/30">
                 <Twitter className="w-4 h-4" />
               </Button>
             </div>
@@ -130,7 +130,7 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-8 pt-8 border-t border-cream/10 flex flex-col md:flex-row justify-between items-center">
+        <div className="mt-8 pt-8 border-t border-cream/10 dark:border-rose-800/30 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-cream/60 flex items-center space-x-1">
             <span>© 2024 SLW. Créé avec</span>
             <Heart className="w-4 h-4 text-magenta fill-current"  aria-hidden="true" />

@@ -138,7 +138,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-rose-powder/10 to-cream">
+    <div className="min-h-screen bg-gradient-to-br from-cream via-rose-powder/10 to-cream dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 opacity-20 overflow-hidden">
         <div className="absolute top-20 left-10 animate-float">
