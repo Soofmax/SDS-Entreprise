@@ -82,7 +82,7 @@ export default function RootLayout({
       </head>
       <body 
         className={cn(
-          "bg-cream text-charcoal font-montserrat antialiased" // <-- 4. Classes plus propres
+          "bg-cream text-charcoal dark:bg-gray-950 dark:text-cream font-montserrat antialiased" // <-- 4. Classes plus propres + dark mode global
         )}
       >
         <AccessibilityProvider>
