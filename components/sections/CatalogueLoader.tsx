@@ -13,13 +13,13 @@ const FullCatalogue = dynamic(
     loading: () => (
       // 3. Utiliser le composant de chargement que vous aviez déjà conçu
       <div className="text-center py-20">
-        <h3 className="text-xl font-semibold text-charcoal mb-4">
+        <h3 className="text-xl font-semibold text-charcoal dark:text-cream mb-4">
           Catalogue Complet de Services
         </h3>
-        <p className="text-charcoal/70 mb-2">
+        <p className="text-charcoal/70 dark:text-cream/80 mb-2">
           Chargement de +30 services : Développement, SEO, IA, Web3...
         </p>
-        <div className="animate-pulse bg-rose-powder/20 h-4 w-48 mx-auto rounded"></div>
+        <div className="animate-pulse bg-rose-powder/20 dark:bg-rose-950/20 h-4 w-48 mx-auto rounded"></div>
       </div>
     )
   }
