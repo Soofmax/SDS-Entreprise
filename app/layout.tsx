@@ -18,19 +18,19 @@ import { cn } from '@/lib/utils'; // <-- 2. Importer l'utilitaire de classes
 export const metadata: Metadata = {
   metadataBase: new URL('https://votre-domaine.com'), // <-- Mettez votre URL de production ici
   title: {
-    default: 'SDS - Services de Développement Sur-Mesure',
-    template: '%s | SDS', // Permet aux pages enfants de définir leur propre titre (ex: "Services | SDS")
+    default: 'SLW - Services de Développement Sur-Mesure',
+    template: '%s | SLW', // Permet aux pages enfants de définir leur propre titre (ex: "Services | SLW")
   },
   description: 'Créatrice de solutions web glamour et performantes. Sites vitrines, landing pages, intégrations Web3 et plus encore.',
   keywords: ['développement web', 'création site internet', 'site vitrine', 'landing page', 'e-commerce', 'web3', 'react', 'next.js', 'freelance'],
-  authors: [{ name: 'Votre Nom ou Nom de l\'entreprise', url: 'https://votre-domaine.com' }],
-  creator: 'Votre Nom ou Nom de l\'entreprise',
+  authors: [{ name: 'Smarter Logic Web.com (SLW)', url: 'https://votre-domaine.com' }],
+  creator: 'Smarter Logic Web.com (SLW)',
   
   openGraph: {
-    title: 'SDS - Services de Développement Sur-Mesure',
+    title: 'SLW - Services de Développement Sur-Mesure',
     description: 'Créatrice de solutions web glamour et performantes.',
     url: 'https://votre-domaine.com',
-    siteName: 'SDS',
+    siteName: 'SLW',
     // images: [ // <-- Ajoutez une image pour le partage sur les réseaux sociaux
     //   {
     //     url: '/og-image.png', // Doit être dans votre dossier /public
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   
   twitter: {
     card: 'summary_large_image',
-    title: 'SDS - Services de Développement Sur-Mesure',
+    title: 'SLW - Services de Développement Sur-Mesure',
     description: 'Créatrice de solutions web glamour et performantes.',
     // creator: '@votreHandleTwitter',
     // images: ['/og-image.png'], // La même image que pour OpenGraph

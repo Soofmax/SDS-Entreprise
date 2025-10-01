@@ -13,7 +13,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-full bg-gradient-rose flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white"  aria-hidden="true" />
               </div>
-              <span className="font-playfair text-xl font-bold text-gradient">SDS</span>
+              <span className="font-playfair text-xl font-bold text-gradient">SLW</span>
             </div>
             <p className="text-sm text-cream/80 leading-relaxed">
               Créatrice de solutions web glamour et performantes. 
@@ -132,7 +132,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-8 pt-8 border-t border-cream/10 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-cream/60 flex items-center space-x-1">
-            <span>© 2024 SDS. Créé avec</span>
+            <span>© 2024 SLW. Créé avec</span>
             <Heart className="w-4 h-4 text-magenta fill-current"  aria-hidden="true" />
             <span>et beaucoup de café</span>
           </p>

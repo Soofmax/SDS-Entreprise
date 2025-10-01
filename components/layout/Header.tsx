@@ -23,7 +23,7 @@ export function Header() {
             <div className="w-10 h-10 rounded-full bg-gradient-rose flex items-center justify-center transform group-hover:scale-105 transition-transform">
               <Sparkles className="w-5 h-5 text-white"  aria-hidden="true" />
             </div>
-            <span className="font-playfair text-2xl font-bold text-gradient">SDS</span>
+            <span className="font-playfair text-2xl font-bold text-gradient">SLW</span>
           </Link>
 
           {/* Desktop Navigation */}

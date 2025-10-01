@@ -2,12 +2,12 @@ import { Metadata } from 'next';
 
 // Configuration SEO de base
 export const siteConfig = {
-  name: 'Salwa Dev Studio',
-  title: 'Salwa Dev Studio - Solutions Web Glamour & Performantes',
-  description: 'Créatrice de solutions web glamour et performantes. Sites vitrines, e-commerce, applications web avec design sur-mesure. Aides publiques France Num jusqu\'à 5000€.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://sds.com',
+  name: 'Smarter Logic Web.com',
+  title: 'SLW - Solutions Web Glamour & Performantes',
+  description: 'Agence web SLW (Smarter Logic Web.com) — sites vitrines, e-commerce, applications web avec design sur-mesure. Aides publiques France Num jusqu\'à 5000€.',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://slw.com',
   ogImage: '/og-image.jpg',
-  creator: 'Salwa',
+  creator: 'SLW',
   keywords: [
     'développement web',
     'création site internet',
