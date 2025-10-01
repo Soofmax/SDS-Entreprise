@@ -6,6 +6,8 @@ import { ArrowDown, Sparkles, Star, Zap, Heart, Mail, Phone, MapPin, Clock, Send
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+type Errors = Partial<Record<'name' | 'email' | 'project' | 'message', string>>;
+
 export default function ContactPage() {
   const [currentWord, setCurrentWord] = useState(0);
   const words = ['Parlons-en', 'C\'est parti !', 'Démarrons ensemble', 'Prêt(e) à commencer ?'];
@@ -18,6 +20,7 @@ export default function ContactPage() {
     message: '',
     timeline: ''
   });
+  const [errors, setErrors] = useState<Errors>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const searchParams = useSearchParams();
 
@@ -74,6 +77,19 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validation simple côté client
+    const newErrors: Errors = {};
+    if (!formData.name.trim()) newErrors.name = 'Le nom est requis.';
+    if (!formData.email.trim()) newErrors.email = 'L\'email est requis.';
+    if (!formData.project.trim()) newErrors.project = 'Le type de projet est requis.';
+    if (!formData.message.trim()) newErrors.message = 'Le message est requis.';
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+
     // Simulation d'envoi
     setIsSubmitted(true);
     setTimeout(() => setIsSubmitted(false), 3000);
@@ -280,7 +296,7 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-semibold text-charcoal mb-2">
-                      Nom Complet *
+                      Nom Complet *{/* Champs requis */}
                     </label>
                     <input
                       type="text"
@@ -290,7 +306,8 @@ export default function ContactPage() {
                       onChange={handleInputChange}
                       required
                       aria-required="true"
-                      aria-describedby="name-help"
+                      aria-describedby={errors.name ? "name-help name-error" : "name-help"}
+                      aria-invalid={Boolean(errors.name)}
                       autoComplete="name"
                       className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                       placeholder="Votre nom et prénom"
@@ -298,11 +315,16 @@ export default function ContactPage() {
                     <div id="name-help" className="text-xs text-charcoal/60 mt-1">
                       Votre nom complet pour personnaliser notre échange
                     </div>
+                    {errors.name && (
+                      <div id="name-error" role="alert" className="error-message">
+                        {errors.name}
+                      </div>
+                    )}
                   </div>
                   
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-charcoal mb-2">
-                      Email *
+                      Email *{/* Champs requis */}
                     </label>
                     <input
                       type="email"
@@ -312,15 +334,20 @@ export default function ContactPage() {
                       onChange={handleInputChange}
                       required
                       aria-required="true"
-                      aria-describedby="email-help"
+                      aria-describedby={errors.email ? "email-help email-error" : "email-help"}
+                      aria-invalid={Boolean(errors.email)}
                       autoComplete="email"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magentare@email.com"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
+                      placeholder="votre@email.com"
                     />
                     <div id="email-help" className="text-xs text-charcoal/60 mt-1">
                       Adresse email pour vous envoyer le devis et communiquer
                     </div>
-                  </div>
-                </div>
+                    {errors.email && (
+                      <div id="email-error" role="alert" className="error-message">
+                        {errors.email}
+                      </div>
+                    )}
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-semibold text-charcoal mb-2">
@@ -355,7 +382,8 @@ export default function ContactPage() {
                       onChange={handleInputChange}
                       required
                       aria-required="true"
-                      aria-describedby="project-help"
+                      aria-describedby={errors.project ? "project-help project-error" : "project-help"}
+                      aria-invalid={Boolean(errors.project)}
                       className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream focus:ring-2 focus:ring-magenta/20"
                     >
                       <option value="">Sélectionnez un type de projet</option>
@@ -366,6 +394,11 @@ export default function ContactPage() {
                     <div id="project-help" className="text-xs text-charcoal/60 mt-1">
                       Choisissez le type qui correspond le mieux à votre besoin
                     </div>
+                    {errors.project && (
+                      <div id="project-error" role="alert" className="error-message">
+                        {errors.project}
+                      </div>
+                    )}
                   </div>
                   
                   <div>
@@ -424,7 +457,8 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     required
                     aria-required="true"
-                    aria-describedby="message-help"
+                    aria-describedby={errors.message ? "message-help message-error" : "message-help"}
+                    aria-invalid={Boolean(errors.message)}
                     rows={6}
                     className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 resize-none focus:ring-2 focus:ring-magenta/20"
                     placeholder="Parlez-moi de votre vision, vos objectifs, vos besoins spécifiques..."
@@ -432,6 +466,11 @@ export default function ContactPage() {
                   <div id="message-help" className="text-xs text-charcoal/60 mt-1">
                     Plus vous donnez de détails, plus je peux vous proposer une solution adaptée
                   </div>
+                  {errors.message && (
+                    <div id="message-error" role="alert" className="error-message">
+                      {errors.message}
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-center pt-6">
