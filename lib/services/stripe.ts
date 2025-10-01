@@ -3,8 +3,8 @@ import { prisma } from '@/lib/db/client';
 
 // Configuration Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  // Use the SDK's latest supported API version for this package version
-  apiVersion: '2024-06-20',
+  // Align with repository's configured Stripe API version (types expect this literal)
+  apiVersion: '2025-08-27.basil',
   typescript: true,
 });
 
