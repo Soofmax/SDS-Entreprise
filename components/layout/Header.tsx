@@ -19,28 +19,28 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 group">
+          <Link href="/" className="flex items-center space-x-2 group no-underline">
             <div className="w-10 h-10 rounded-full bg-gradient-rose flex items-center justify-center transform group-hover:scale-105 transition-transform">
               <Sparkles className="w-5 h-5 text-white"  aria-hidden="true" />
             </div>
-            <span className="font-playfair text-2xl font-bold text-gradient">SLW</span>
+            <span className="font-playfair text-2xl md:text-3xl font-bold text-gradient tracking-wide leading-none">SLW</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
+            <Link href="/" className="no-underline text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
               Accueil
             </Link>
-            <Link href="/services" className="text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
+            <Link href="/services" className="no-underline text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
               Services
             </Link>
-            <Link href="/portfolio" className="text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
+            <Link href="/portfolio" className="no-underline text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
               Portfolio
             </Link>
-            <Link href="/about" className="text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
+            <Link href="/about" className="no-underline text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
               À propos
             </Link>
-            <Link href="/contact" className="text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
+            <Link href="/contact" className="no-underline text-charcoal dark:text-cream hover:text-magenta dark:hover:text-rose-300 transition-colors font-medium">
               Contact
             </Link>
           </nav>

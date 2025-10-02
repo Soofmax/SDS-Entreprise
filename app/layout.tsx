@@ -44,6 +44,13 @@ export const metadata: Metadata = {
     description: 'Créatrice de solutions web glamour et performantes.',
     url: 'https://smarterlogicweb.com',
     siteName: 'SLW',
+    images: [
+      {
+        url: '/og',
+        width: 1200,
+        height: 630,
+      },
+    ],
     locale: 'fr_FR',
     type: 'website',
   },
@@ -52,6 +59,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SLW - Services de Développement Sur-Mesure',
     description: 'Créatrice de solutions web glamour et performantes.',
+    images: ['/og'],
   },
 
   robots: {

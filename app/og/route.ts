@@ -1,0 +1,91 @@
+import { ImageResponse } from 'next/og';
+
+export const runtime = 'edge';
+
+export async function GET() {
+  const width = 1200;
+  const height = 630;
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background:
+            'linear-gradient(135deg, #0b0b0b 0%, #1a0e14 35%, #3b0e24 75%, #C73863 100%)',
+          position: 'relative',
+        }}
+      >
+        {/* Glow */}
+        <div
+          style={{
+            position: 'absolute',
+            width: 900,
+            height: 900,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle at 50% 50%, rgba(199,56,99,0.35), transparent 60%)',
+            filter: 'blur(60px)',
+          }}
+        />
+        {/* Content */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            zIndex: 10,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 210,
+              lineHeight: 1,
+              fontWeight: 700,
+              letterSpacing: 6,
+              color: 'white',
+            }}
+          >
+            SLW
+          </div>
+          <div
+            style={{
+              marginTop: 24,
+              fontSize: 42,
+              color: 'rgba(255,255,255,0.82)',
+              letterSpacing: 2,
+            }}
+          >
+            Smarter Logic Web
+          </div>
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 28,
+              color: 'rgba(255,255,255,0.72)',
+            }}
+          >
+            Sites vitrines statiques • Performance • Accessibilité • SEO
+          </div>
+        </div>
+
+        {/* Corner accent */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 40,
+            border: '2px solid rgba(255,255,255,0.08)',
+            borderRadius: 20,
+          }}
+        />
+      </div>
+    ),
+    {
+      width,
+      height,
+    }
+  );
+}
