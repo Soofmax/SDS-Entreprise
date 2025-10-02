@@ -370,7 +370,7 @@ export class PWAService {
     // Afficher une notification de bienvenue
     if (installed) {
       this.showNotification({
-        title: 'SDS installé !',
+        title: 'SLW installé !',
         body: 'L\'application est maintenant disponible sur votre écran d\'accueil.',
         tag: 'welcome',
       });
@@ -386,7 +386,7 @@ export class PWAService {
     // Afficher une notification de mise à jour
     this.showNotification({
       title: 'Mise à jour disponible',
-      body: 'Une nouvelle version de SDS est disponible.',
+      body: 'Une nouvelle version de SLW est disponible.',
       tag: 'update',
       actions: [
         {

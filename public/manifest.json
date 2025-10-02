@@ -1,10 +1,10 @@
 {
-  "name": "Salwa Dev Studio - Solutions Web Glamour",
-  "short_name": "SDS",
-  "description": "Créatrice de solutions web glamour et performantes. Sites vitrines, e-commerce, applications web avec design sur-mesure.",
+  "name": "Smarter Logic Web.com - Solutions Web Glamour",
+  "short_name": "SLW",
+  "description": "Agence SLW: sites vitrines statiques, landing pages, intégrations web sur-mesure.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFFBF5",
+  "background_color": "#0b0b0b",
   "theme_color": "#C73863",
   "orientation": "portrait-primary",
   "scope": "/",
@@ -13,52 +13,22 @@
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -66,89 +36,19 @@
       "name": "Nouveau Projet",
       "short_name": "Contact",
       "description": "Démarrer un nouveau projet web",
-      "url": "/contact",
-      "icons": [
-        {
-          "src": "/icons/shortcut-contact.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "url": "/contact"
     },
     {
       "name": "Portfolio",
       "short_name": "Projets",
-      "description": "Voir mes réalisations",
-      "url": "/portfolio",
-      "icons": [
-        {
-          "src": "/icons/shortcut-portfolio.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
+      "description": "Voir nos réalisations",
+      "url": "/portfolio"
     },
     {
       "name": "Services",
       "short_name": "Offres",
-      "description": "Découvrir mes services",
-      "url": "/services",
-      "icons": [
-        {
-          "src": "/icons/shortcut-services.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Calculateur Aide",
-      "short_name": "Aide",
-      "description": "Calculer les aides France Num",
-      "url": "/calculateur-aide",
-      "icons": [
-        {
-          "src": "/icons/shortcut-calculator.png",
-          "sizes": "96x96",
-          "type": "image/png"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-home.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Page d'accueil - Version desktop"
-    },
-    {
-      "src": "/screenshots/mobile-home.png",
-      "sizes": "375x667",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Page d'accueil - Version mobile"
-    },
-    {
-      "src": "/screenshots/desktop-services.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Page services - Version desktop"
-    },
-    {
-      "src": "/screenshots/mobile-contact.png",
-      "sizes": "375x667",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Formulaire de contact - Version mobile"
-    }
-  ],
-  "related_applications": [
-    {
-      "platform": "webapp",
-      "url": "https://sds.com/manifest.json"
+      "description": "Découvrir nos services",
+      "url": "/services"
     }
   ],
   "prefer_related_applications": false,
@@ -165,24 +65,11 @@
       "url": "/contact?email=%s"
     }
   ],
-  "file_handlers": [
+  "related_applications": [
     {
-      "action": "/contact",
-      "accept": {
-        "text/plain": [".txt"],
-        "application/pdf": [".pdf"]
-      }
+      "platform": "webapp",
+      "url": "https://smarterlogicweb.com/manifest.json"
     }
-  ],
-  "share_target": {
-    "action": "/contact",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "message",
-      "url": "url"
-    }
-  }
+  ]
 }
 

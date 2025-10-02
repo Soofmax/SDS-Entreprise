@@ -503,6 +503,18 @@ a:not(.button):not(.btn):hover {
   text-decoration-thickness: 2px !important;
 }
 
+/* Navigation header: pas de soulignement permanent */
+header a,
+header nav a,
+header a.no-underline {
+  text-decoration: none !important;
+}
+
+header a:hover,
+header nav a:hover {
+  text-decoration: none !important;
+}
+
 /* Amélioration des boutons pour screen readers */
 button[aria-expanded="true"]::after {
   content: " (ouvert)";

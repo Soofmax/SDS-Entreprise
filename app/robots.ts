@@ -115,7 +115,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
       
-      // Bloquer les bots malveillants
+      // Bloquer certains bots malveillants et bots d'entraînement IA
       {
         userAgent: [
           'AhrefsBot',
@@ -126,14 +126,35 @@ export default function robots(): MetadataRoute.Robots {
           'DataForSeoBot',
           'PetalBot',
           'YandexBot',
-          'CCBot',
+          'CCBot',            // CommonCrawl (entraînement)
+          'GPTBot',           // OpenAI (entraînement)
+          'Google-Extended',  // Google (entraînement)
+        ],
+        disallow: '/',
+      },
+
+      // Autoriser les bots LLMs orientés usage (Q/R) uniquement
+      {
+        userAgent: [
           'ChatGPT-User',
-          'GPTBot',
-          'Google-Extended',
           'anthropic-ai',
           'Claude-Web',
         ],
-        disallow: '/',
+        allow: [
+          '/',
+          '/services',
+          '/portfolio',
+          '/about',
+          '/contact',
+          '/og-image.jpg',
+          '/icons',
+        ],
+        disallow: [
+          '/admin',
+          '/api',
+          '/private',
+        ],
+        crawlDelay: 1,
       },
       
       // Règles pour les bots d'archivage
@@ -161,12 +182,9 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     
-    // Sitemaps
+    // Sitemaps (simplifié pour éviter les 404 tant que non générés)
     sitemap: [
       `${baseUrl}/sitemap.xml`,
-      `${baseUrl}/sitemap-images.xml`,
-      `${baseUrl}/sitemap-videos.xml`,
-      `${baseUrl}/sitemap-news.xml`,
     ],
     
     // Host (optionnel, pour spécifier le domaine principal)

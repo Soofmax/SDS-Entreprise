@@ -179,7 +179,7 @@ export function FullCatalogue() {
       <div className="w-full">
         {/* En-tête avec statistiques SEO */}
         <div className="text-center mb-8">
-          <p className="text-lg text-charcoal/70">
+          <p className="text-lg text-charcoal/70 dark:text-cream/80">
             <strong>{catalogueStats.totalServices} services</strong> disponibles
             {catalogueStats.priceRange && (
               <> • De <strong>{catalogueStats.priceRange.min}€</strong> à <strong>{catalogueStats.priceRange.max}€</strong></>
@@ -191,7 +191,7 @@ export function FullCatalogue() {
         </div>
 
         {/* Filtres et Recherche Optimisés */}
-        <div className="mt-16 sticky top-16 bg-cream/95 backdrop-blur-md py-6 z-20 border-y border-rose-powder/10">
+        <div className="mt-16 sticky top-16 bg-cream/95 dark:bg-gray-900/90 backdrop-blur-md py-6 z-20 border-y border-rose-powder/10 dark:border-rose-800/30">
           <div className="flex flex-col lg:flex-row gap-6 items-center justify-between max-w-6xl mx-auto">
             
             {/* Barre de recherche enrichie */}
@@ -199,14 +199,14 @@ export function FullCatalogue() {
               <label htmlFor="search-service" className="sr-only">
                 Rechercher parmi {allServices.length} services web
               </label>
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40 w-5 h-5" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal/40 dark:text-cream/50 w-5 h-5" />
               <input 
                 id="search-service"
                 type="search"
                 placeholder={`Rechercher parmi ${allServices.length} services...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-rose-powder/30 rounded-full bg-white focus:ring-2 focus:ring-magenta focus:border-magenta transition-all"
+                className="w-full pl-12 pr-4 py-3 border border-rose-powder/30 dark:border-rose-800/30 rounded-full bg-white dark:bg-gray-900 text-charcoal dark:text-cream focus:ring-2 focus:ring-magenta focus:border-magenta transition-all"
                 aria-describedby="search-help"
               />
               <p id="search-help" className="sr-only">
@@ -216,10 +216,10 @@ export function FullCatalogue() {
 
             {/* Contrôles d'affichage */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-white rounded-full p-1 border border-rose-powder/30">
+              <div className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-full p-1 border border-rose-powder/30 dark:border-rose-800/30">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-full transition-all ${viewMode === 'grid' ? 'bg-magenta text-white' : 'text-charcoal/60 hover:bg-rose-powder/20'}`}
+                  className={`p-2 rounded-full transition-all ${viewMode === 'grid' ? 'bg-magenta text-white' : 'text-charcoal/60 dark:text-cream/70 hover:bg-rose-powder/20 dark:hover:bg-rose-900/30'}`}
                   aria-label="Affichage en grille"
                   aria-pressed={viewMode === 'grid'}
                 >
@@ -227,7 +227,7 @@ export function FullCatalogue() {
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-full transition-all ${viewMode === 'list' ? 'bg-magenta text-white' : 'text-charcoal/60 hover:bg-rose-powder/20'}`}
+                  className={`p-2 rounded-full transition-all ${viewMode === 'list' ? 'bg-magenta text-white' : 'text-charcoal/60 dark:text-cream/70 hover:bg-rose-powder/20 dark:hover:bg-rose-900/30'}`}
                   aria-label="Affichage en liste"
                   aria-pressed={viewMode === 'list'}
                 >
@@ -240,8 +240,8 @@ export function FullCatalogue() {
           {/* Filtres par catégorie avec compteurs */}
           <div className="mt-6 max-w-6xl mx-auto">
             <div className="flex items-center gap-3 mb-4">
-              <Filter className="w-5 h-5 text-charcoal/60" />
-              <h3 className="font-semibold text-charcoal">Filtrer par catégorie :</h3>
+              <Filter className="w-5 h-5 text-charcoal/60 dark:text-cream/70" />
+              <h3 className="font-semibold text-charcoal dark:text-cream">Filtrer par catégorie :</h3>
             </div>
             
             <div role="group" aria-labelledby="filter-heading" className="flex flex-wrap gap-3">
@@ -253,7 +253,7 @@ export function FullCatalogue() {
                   className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-full transition-all border ${
                     activeFilter === category.id 
                       ? 'bg-magenta text-white shadow-md border-magenta' 
-                      : 'bg-white text-charcoal hover:bg-rose-powder/20 border-rose-powder/30 hover:border-magenta/30'
+                      : 'bg-white dark:bg-gray-900 text-charcoal dark:text-cream hover:bg-rose-powder/20 dark:hover:bg-rose-900/30 border-rose-powder/30 dark:border-rose-800/30 hover:border-magenta/30'
                   }`}
                   aria-pressed={activeFilter === category.id}
                   title={category.description}
@@ -262,7 +262,7 @@ export function FullCatalogue() {
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     activeFilter === category.id 
                       ? 'bg-white/20 text-white' 
-                      : 'bg-rose-powder/20 text-charcoal/70'
+                      : 'bg-rose-powder/20 dark:bg-rose-950/20 text-charcoal/70 dark:text-cream/70'
                   }`}>
                     {category.count}
                   </span>
@@ -298,7 +298,7 @@ export function FullCatalogue() {
                   id={`service-${service.id}`}
                   itemScope 
                   itemType="https://schema.org/Service"
-                  className={viewMode === 'list' ? "bg-white rounded-xl p-6 border border-rose-powder/30 hover:border-magenta/30 transition-all" : ""}
+                  className={viewMode === 'list' ? "bg-white dark:bg-gray-900 rounded-xl p-6 border border-rose-powder/30 dark:border-rose-800/30 hover:border-magenta/30 transition-all" : ""}
                 >
                   {/* Métadonnées cachées pour le SEO */}
                   <meta itemProp="serviceType" content={service.subCategory} />
@@ -313,12 +313,12 @@ export function FullCatalogue() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-white rounded-2xl border border-rose-powder/20">
-              <Tag className="w-16 h-16 mx-auto text-charcoal/20 mb-6" />
-              <h3 className="text-xl font-semibold text-charcoal mb-2">
+            <div className="text-center py-20 bg-white dark:bg-gray-900 rounded-2xl border border-rose-powder/20 dark:border-rose-800/30">
+              <Tag className="w-16 h-16 mx-auto text-charcoal/20 dark:text-cream/30 mb-6" />
+              <h3 className="text-xl font-semibold text-charcoal dark:text-cream mb-2">
                 Aucun service ne correspond à votre recherche
               </h3>
-              <p className="text-charcoal/60 mb-6 max-w-md mx-auto">
+              <p className="text-charcoal/60 dark:text-cream/70 mb-6 max-w-md mx-auto">
                 {debouncedSearchQuery 
                   ? `Aucun résultat pour "${debouncedSearchQuery}". Essayez d'autres termes ou explorez nos catégories.`
                   : "Essayez de modifier vos filtres ou votre recherche."
@@ -327,12 +327,12 @@ export function FullCatalogue() {
               
               {/* Suggestions de recherche */}
               <div className="flex flex-wrap gap-2 justify-center">
-                <p className="text-sm text-charcoal/50 w-full mb-3">Suggestions :</p>
+                <p className="text-sm text-charcoal/50 dark:text-cream/60 w-full mb-3">Suggestions :</p>
                 {['SEO', 'E-commerce', 'IA', 'Site vitrine', 'Mobile'].map(suggestion => (
                   <button
                     key={suggestion}
                     onClick={() => setSearchQuery(suggestion)}
-                    className="px-3 py-1.5 text-sm bg-rose-powder/10 text-charcoal hover:bg-rose-powder/20 rounded-full transition-colors"
+                    className="px-3 py-1.5 text-sm bg-rose-powder/10 dark:bg-rose-950/20 text-charcoal dark:text-cream hover:bg-rose-powder/20 dark:hover:bg-rose-900/30 rounded-full transition-colors"
                   >
                     {suggestion}
                   </button>

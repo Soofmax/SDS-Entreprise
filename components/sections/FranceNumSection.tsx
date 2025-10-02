@@ -106,22 +106,22 @@ export function FranceNumSection() {
   ];
 
   return (
-    <section className="py-24 bg-gradient-to-br from-cream via-rose-powder/5 to-cream">
+    <section className="py-24 bg-gradient-to-br from-cream via-rose-powder/5 to-cream dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm border border-rose-powder/30 rounded-full px-6 py-2 mb-8">
+          <div className="inline-flex items-center space-x-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-rose-powder/30 dark:border-rose-800/30 rounded-full px-6 py-2 mb-8">
             <Gift className="w-4 h-4 text-magenta"  aria-hidden="true" />
-            <span className="text-sm font-medium text-charcoal">Aide Publique France Num</span>
+            <span className="text-sm font-medium text-charcoal dark:text-cream">Aide Publique France Num</span>
           </div>
 
-          <h2 className="font-playfair text-4xl md:text-6xl font-bold text-charcoal mb-6">
+          <h2 className="font-playfair text-4xl md:text-6xl font-bold text-charcoal dark:text-cream mb-6">
             Jusqu'à <span className="text-gradient">5 000€</span>
             <br />
             d'Aide Publique
           </h2>
 
-          <p className="text-xl text-charcoal/80 mb-8 leading-relaxed">
+          <p className="text-xl text-charcoal/80 dark:text-cream/80 mb-8 leading-relaxed">
             Bénéficiez du dispositif France Num pour financer votre transformation digitale. 
             Calculez instantanément votre aide personnalisée.
           </p>
@@ -130,22 +130,22 @@ export function FranceNumSection() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Calculateur */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-rose-powder/30 shadow-rose">
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl p-8 border border-rose-powder/30 dark:border-rose-800/30 shadow-rose">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-rose rounded-full flex items-center justify-center">
                   <Calculator className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-playfair text-2xl font-bold text-charcoal">
+                  <h3 className="font-playfair text-2xl font-bold text-charcoal dark:text-cream">
                     Calculateur d'Aide
                   </h3>
-                  <p className="text-charcoal/70">Estimation instantanée et gratuite</p>
+                  <p className="text-charcoal/70 dark:text-cream/80">Estimation instantanée et gratuite</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-charcoal mb-2">
+                  <label className="block text-sm font-semibold text-charcoal dark:text-cream mb-2">
                     <Users className="w-4 h-4 inline mr-2" />
                     Taille de votre entreprise
                   </label>
@@ -153,7 +153,7 @@ export function FranceNumSection() {
                     name="companySize"
                     value={formData.companySize}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream"
                   >
                     <option value="">Sélectionnez</option>
                     {companySizes.map((size) => (
@@ -163,7 +163,7 @@ export function FranceNumSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-charcoal mb-2">
+                  <label className="block text-sm font-semibold text-charcoal dark:text-cream mb-2">
                     <Building className="w-4 h-4 inline mr-2" />
                     Secteur d'activité
                   </label>
@@ -171,7 +171,7 @@ export function FranceNumSection() {
                     name="sector"
                     value={formData.sector}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream"
                   >
                     <option value="">Sélectionnez</option>
                     {sectors.map((sector) => (
@@ -181,7 +181,7 @@ export function FranceNumSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-charcoal mb-2">
+                  <label className="block text-sm font-semibold text-charcoal dark:text-cream mb-2">
                     <MapPin className="w-4 h-4 inline mr-2"  aria-label="Localisation" />
                     Localisation
                   </label>
@@ -189,7 +189,7 @@ export function FranceNumSection() {
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream"
                   >
                     <option value="">Sélectionnez</option>
                     <option value="france">France métropolitaine</option>
@@ -199,14 +199,14 @@ export function FranceNumSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-charcoal mb-2">
+                  <label className="block text-sm font-semibold text-charcoal dark:text-cream mb-2">
                     Type de projet
                   </label>
                   <select
                     name="projectType"
                     value={formData.projectType}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream"
                   >
                     <option value="">Sélectionnez</option>
                     {projectTypes.map((type) => (
@@ -216,7 +216,7 @@ export function FranceNumSection() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-charcoal mb-2">
+                  <label className="block text-sm font-semibold text-charcoal dark:text-cream mb-2">
                     <Euro className="w-4 h-4 inline mr-2" />
                     Budget estimé
                   </label>
@@ -224,7 +224,7 @@ export function FranceNumSection() {
                     name="budget"
                     value={formData.budget}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream"
                   >
                     <option value="">Sélectionnez</option>
                     {budgetRanges.map((range) => (
@@ -307,23 +307,23 @@ export function FranceNumSection() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-rose-powder/30 shadow-rose">
+                <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl p-8 border border-rose-powder/30 dark:border-rose-800/30 shadow-rose">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-rose rounded-full flex items-center justify-center mx-auto mb-4">
                       <Calculator className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="font-playfair text-2xl font-bold text-charcoal mb-4">
+                    <h3 className="font-playfair text-2xl font-bold text-charcoal dark:text-cream mb-4">
                       Découvrez Votre Aide
                     </h3>
-                    <p className="text-charcoal/70 mb-6">
+                    <p className="text-charcoal/70 dark:text-cream/80 mb-6">
                       Remplissez le formulaire pour connaître le montant de votre aide France Num.
                     </p>
                   </div>
 
                   <div className="space-y-4">
-                    <div className="bg-gradient-to-r from-magenta/10 to-rose-powder/20 rounded-xl p-4">
-                      <h4 className="font-semibold text-charcoal mb-2">Avantages France Num :</h4>
-                      <ul className="space-y-2 text-sm text-charcoal/80">
+                    <div className="bg-gradient-to-r from-magenta/10 to-rose-powder/20 dark:from-rose-950/20 dark:to-rose-900/10 rounded-xl p-4">
+                      <h4 className="font-semibold text-charcoal dark:text-cream mb-2">Avantages France Num :</h4>
+                      <ul className="space-y-2 text-sm text-charcoal/80 dark:text-cream/80">
                         <li className="flex items-center">
                           <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
                           Jusqu'à 5 000€ d'aide directe

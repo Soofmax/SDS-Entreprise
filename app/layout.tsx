@@ -6,51 +6,67 @@ import { Providers } from './providers';
 import { Toaster } from 'sonner';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { CookieBanner } from '@/components/layout/CookieBanner'; // <-- 1. Importer la bannière
 import { AccessibilityProvider } from '@/components/accessibility/AccessibilityProvider';
 import { AccessibilityToolbar } from '@/components/accessibility/AccessibilityToolbar';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import EventTracker from '@/components/analytics/EventTracker';
 import CookieBannerNew from '@/components/cookies/CookieBanner';
-import { cn } from '@/lib/utils'; // <-- 2. Importer l'utilitaire de classes
+import { cn } from '@/lib/utils';
 
-// 3. Métadonnées enrichies pour un meilleur SEO
+// next/font – auto-hébergé, réduit le CLS
+import { Playfair_Display, Montserrat } from 'next/font/google';
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-playfair',
+});
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-montserrat',
+});
+
+// Métadonnées enrichies pour un meilleur SEO
 export const metadata: Metadata = {
-  metadataBase: new URL('https://votre-domaine.com'), // <-- Mettez votre URL de production ici
+  metadataBase: new URL('https://smarterlogicweb.com'),
   title: {
-    default: 'SDS - Services de Développement Sur-Mesure',
-    template: '%s | SDS', // Permet aux pages enfants de définir leur propre titre (ex: "Services | SDS")
+    default: 'SLW - Services de Développement Sur-Mesure',
+    template: '%s | SLW',
   },
   description: 'Créatrice de solutions web glamour et performantes. Sites vitrines, landing pages, intégrations Web3 et plus encore.',
   keywords: ['développement web', 'création site internet', 'site vitrine', 'landing page', 'e-commerce', 'web3', 'react', 'next.js', 'freelance'],
-  authors: [{ name: 'Votre Nom ou Nom de l\'entreprise', url: 'https://votre-domaine.com' }],
-  creator: 'Votre Nom ou Nom de l\'entreprise',
-  
+  authors: [{ name: 'Smarter Logic Web.com (SLW)', url: 'https://smarterlogicweb.com' }],
+  creator: 'Smarter Logic Web.com (SLW)',
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+    shortcut: '/icon',
+  },
   openGraph: {
-    title: 'SDS - Services de Développement Sur-Mesure',
+    title: 'SLW - Services de Développement Sur-Mesure',
     description: 'Créatrice de solutions web glamour et performantes.',
-    url: 'https://votre-domaine.com',
-    siteName: 'SDS',
-    // images: [ // <-- Ajoutez une image pour le partage sur les réseaux sociaux
-    //   {
-    //     url: '/og-image.png', // Doit être dans votre dossier /public
-    //     width: 1200,
-    //     height: 630,
-    //   },
-    // ],
+    url: 'https://smarterlogicweb.com',
+    siteName: 'SLW',
+    images: [
+      {
+        url: '/og',
+        width: 1200,
+        height: 630,
+      },
+    ],
     locale: 'fr_FR',
     type: 'website',
   },
   
   twitter: {
     card: 'summary_large_image',
-    title: 'SDS - Services de Développement Sur-Mesure',
+    title: 'SLW - Services de Développement Sur-Mesure',
     description: 'Créatrice de solutions web glamour et performantes.',
-    // creator: '@votreHandleTwitter',
-    // images: ['/og-image.png'], // La même image que pour OpenGraph
+    images: ['/og'],
   },
 
-  robots: { // Instructions pour les robots d'indexation
+  robots: {
     index: true,
     follow: true,
     googleBot: {
@@ -69,33 +85,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning> {/* suppressHydrationWarning est utile avec next-themes */}
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <GoogleAnalytics />
-        {/* Chargement des polices via Google Fonts au runtime (pas au build) */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
+        {/* next/font gère les polices, suppression des liens Google Fonts */}
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body 
         className={cn(
-          "bg-cream text-charcoal font-montserrat antialiased" // <-- 4. Classes plus propres
+          `${playfair.variable} ${montserrat.variable}`,
+          "bg-cream text-charcoal dark:bg-gray-950 dark:text-cream font-montserrat antialiased"
         )}
       >
+        {/* Skip link pour WCAG */}
+        <a href="#main" className="skip-link">Aller au contenu principal</a>
         <AccessibilityProvider>
           <Providers>
             <EventTracker>
               <Header />
-              <main className="pt-20"> {/* Ajusté à 5rem (80px) pour un header un peu plus haut */}
+              <main id="main" className="pt-20" tabIndex={-1}>
                 {children}
               </main>
               <Footer />
             </EventTracker>
             <Toaster position="bottom-right" richColors />
-            <CookieBannerNew /> {/* <-- 5. Nouvelle bannière RGPD */}
+            <CookieBannerNew />
             <AccessibilityToolbar />
           </Providers>
         </AccessibilityProvider>

@@ -124,20 +124,20 @@ export function PricingSection() {
   const selectedPkg = packages.find(pkg => pkg.id === selectedPackage);
 
   return (
-    <section className="py-24 bg-gradient-to-br from-cream via-rose-powder/5 to-cream">
+    <section className="py-24 bg-gradient-to-br from-cream via-rose-powder/5 to-cream dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <div className="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-sm border border-rose-powder/30 rounded-full px-6 py-2 mb-8">
+          <div className="inline-flex items-center space-x-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-rose-powder/30 dark:border-rose-800/30 rounded-full px-6 py-2 mb-8">
             <Gift className="w-4 h-4 text-magenta"  aria-hidden="true" />
-            <span className="text-sm font-medium text-charcoal">Pricing Transparent • Aides Incluses</span>
+            <span className="text-sm font-medium text-charcoal dark:text-cream">Pricing Transparent • Aides Incluses</span>
           </div>
 
-          <h2 className="font-playfair text-4xl md:text-6xl font-bold text-charcoal mb-6">
+          <h2 className="font-playfair text-4xl md:text-6xl font-bold text-charcoal dark:text-cream mb-6">
             Packages <span className="text-gradient">Sur-Mesure</span>
           </h2>
 
-          <p className="text-xl text-charcoal/80 mb-8 leading-relaxed">
+          <p className="text-xl text-charcoal/80 dark:text-cream/80 mb-8 leading-relaxed">
             Choisissez la solution qui correspond à vos besoins et votre budget. 
             Aides publiques déjà déduites, aucune surprise.
           </p>
@@ -151,7 +151,7 @@ export function PricingSection() {
                 className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 ${
                   selectedPackage === pkg.id
                     ? 'bg-gradient-rose text-white shadow-rose'
-                    : 'bg-white/70 text-charcoal border border-rose-powder/30 hover:border-magenta hover:shadow-rose'
+                    : 'bg-white/70 dark:bg-gray-900/60 text-charcoal dark:text-cream border border-rose-powder/30 dark:border-rose-800/30 hover:border-magenta hover:shadow-rose'
                 }`}
               >
                 {pkg.name}
@@ -171,8 +171,8 @@ export function PricingSection() {
                   key={pkg.id}
                   className={`relative rounded-3xl p-8 backdrop-blur-sm border transition-all duration-500 hover:scale-105 hover:shadow-rose-lg ${
                     pkg.popular 
-                      ? 'bg-gradient-to-br from-white/90 to-rose-powder/20 border-magenta ring-2 ring-magenta' 
-                      : 'bg-white/70 border-rose-powder/30 hover:border-magenta'
+                      ? 'bg-gradient-to-br from-white/90 to-rose-powder/20 dark:from-gray-900 dark:to-rose-950/20 border-magenta ring-2 ring-magenta' 
+                      : 'bg-white/70 dark:bg-gray-900/70 border-rose-powder/30 dark:border-rose-800/30 hover:border-magenta'
                   } ${selectedPackage === pkg.id ? 'ring-2 ring-magenta border-magenta' : ''}`}
                 >
                   {/* Popular Badge */}
@@ -254,15 +254,17 @@ export function PricingSection() {
                   </div>
 
                   {/* CTA Button */}
-                  <Button
-                    className={`w-full py-6 text-lg font-semibold rounded-2xl transition-all duration-300 ${
-                      pkg.popular
-                        ? 'bg-gradient-rose text-white hover:opacity-90 shadow-rose'
-                        : 'bg-white text-magenta border-2 border-magenta hover:bg-magenta hover:text-white'
-                    }`}
-                  >
-                    Choisir {pkg.name}
-                  </Button>
+                  <a href={`/contact?package=${pkg.id}`} className="block">
+                    <Button
+                      className={`w-full py-6 text-lg font-semibold rounded-2xl transition-all duration-300 ${
+                        pkg.popular
+                          ? 'bg-gradient-rose text-white hover:opacity-90 shadow-rose'
+                          : 'bg-white text-magenta border-2 border-magenta hover:bg-magenta hover:text-white'
+                      }`}
+                    >
+                      Demander un devis pour {pkg.name}
+                    </Button>
+                  </a>
                 </div>
               );
             })}

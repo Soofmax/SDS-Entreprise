@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export function CTASection() {
   return (
-    <section className="py-20 bg-charcoal relative overflow-hidden">
+    <section className="py-20 bg-charcoal dark:bg-gray-950 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-10 animate-float">
@@ -26,11 +26,11 @@ export function CTASection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-4xl mx-auto text-center">
           {/* Main Content */}
-          <h2 className="font-playfair text-4xl md:text-6xl font-bold text-cream mb-6">
+          <h2 className="font-playfair text-4xl md:text-6xl font-bold text-cream dark:text-cream mb-6">
             Prête à Donner Vie à
             <span className="text-gradient block">Votre Vision ?</span>
           </h2>
-          <p className="text-xl text-cream/80 leading-relaxed mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-cream/80 dark:text-cream/80 leading-relaxed mb-8 max-w-3xl mx-auto">
             Chaque projet est une nouvelle aventure créative. Parlons de vos ambitions et créons 
             ensemble quelque chose d'extraordinaire qui vous ressemble vraiment.
           </p>
@@ -46,14 +46,14 @@ export function CTASection() {
                 <ArrowRight className="ml-2 w-5 h-5"  aria-hidden="true" />
               </Button>
             </Link>
-            <Link href="/consultation">
+            <Link href="/contact#rdv">
               <Button 
                 variant="outline" 
                 size="lg"
-                className="border-2 border-rose-powder text-cream hover:bg-rose-powder hover:text-charcoal px-8 py-6 text-lg font-semibold transform hover:scale-105 transition-all duration-300"
+                className="border-2 border-rose-powder text-cream dark:text-cream hover:bg-rose-powder hover:text-charcoal px-8 py-6 text-lg font-semibold transform hover:scale-105 transition-all duration-300"
               >
                 <MessageCircle className="mr-2 w-5 h-5" />
-                Consultation Gratuite
+                Prendre Rendez-vous
               </Button>
             </Link>
           </div>

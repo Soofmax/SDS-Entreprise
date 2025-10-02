@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowDown, Sparkles, Star, Zap, Heart, Mail, Phone, MapPin, Clock, Send, MessageCircle, Calendar, Coffee, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
+type Errors = Partial<Record<'name' | 'email' | 'project' | 'message', string>>;
 
 export default function ContactPage() {
   const [currentWord, setCurrentWord] = useState(0);
@@ -17,7 +20,9 @@ export default function ContactPage() {
     message: '',
     timeline: ''
   });
+  const [errors, setErrors] = useState<Errors>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -25,6 +30,42 @@ export default function ContactPage() {
     }, 2000);
     return () => clearInterval(interval);
   }, [words.length]);
+
+  // Prefill from query params (?package=professionnel&total=6240)
+  useEffect(() => {
+    const pkg = searchParams.get('package') || '';
+    const totalParam = searchParams.get('total') || '';
+
+    // Map package -> project type
+    const packageToProject: Record<string, string> = {
+      essentiel: 'Site Vitrine',
+      professionnel: 'Site Vitrine',
+      boutique: 'E-commerce',
+    };
+
+    // Guess budget bucket from numeric total (EUR)
+    const computeBudgetBucket = (totalStr: string): string => {
+      const n = parseInt(totalStr, 10);
+      if (!isFinite(n) || n <= 0) return '';
+      if (n < 3000) return 'Moins de 3 000€';
+      if (n < 5000) return '3 000€ - 5 000€';
+      if (n < 10000) return '5 000€ - 10 000€';
+      if (n < 20000) return '10 000€ - 20 000€';
+      return 'Plus de 20 000€';
+    };
+
+    const projectPrefill = packageToProject[pkg] || '';
+    const budgetPrefill = computeBudgetBucket(totalParam);
+
+    if (projectPrefill || budgetPrefill) {
+      setFormData(prev => ({
+        ...prev,
+        project: projectPrefill || prev.project,
+        budget: budgetPrefill || prev.budget,
+        message: prev.message || (pkg ? `Package souhaité: ${pkg}` : ''),
+      }));
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -34,11 +75,21 @@ export default function ContactPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simulation d'envoi
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 3000);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    // Validation côté client, tout en conservant la dégradation progressive (pas de preventDefault si OK)
+    const newErrors: Errors = {};
+    if (!formData.name.trim()) newErrors.name = 'Le nom est requis.';
+    if (!formData.email.trim()) newErrors.email = 'L\'email est requis.';
+    if (!formData.project.trim()) newErrors.project = 'Le type de projet est requis.';
+    if (!formData.message.trim()) newErrors.message = 'Le message est requis.';
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      e.preventDefault();
+      return;
+    }
+    // Laisser le navigateur soumettre le formulaire vers /api/contact (fallback no-JS OK)
   };
 
   const contactMethods = [
@@ -100,7 +151,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-rose-powder/10 to-cream">
+    <div className="min-h-screen bg-gradient-to-br from-cream via-rose-powder/10 to-cream dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 opacity-20 overflow-hidden">
         <div className="absolute top-20 left-10 animate-float">
@@ -219,14 +270,14 @@ export default function ContactPage() {
             </div>
 
             {isSubmitted ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12" role="status" aria-live="polite">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-10 h-10 text-green-600" />
                 </div>
-                <h4 className="font-playfair text-2xl font-bold text-charcoal mb-4">
+                <h4 className="font-playfair text-2xl font-bold text-charcoal dark:text-cream mb-4">
                   Message Envoyé !
                 </h4>
-                <p className="text-charcoal/80 mb-6">
+                <p className="text-charcoal/80 dark:text-cream/80 mb-6">
                   Merci pour votre message. Je vous réponds sous 24h maximum.
                 </p>
                 <Button 
@@ -237,12 +288,17 @@ export default function ContactPage() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} action="/api/contact" method="POST" className="space-y-6" noValidate>
+                {/* Honeypot anti-spam */}
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="company">Société (laissez vide)</label>
+                  <input type="text" id="company" name="company" tabIndex={-1} autoComplete="organization" />
+                </div>
                 {/* Personal Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-semibold text-charcoal mb-2">
-                      Nom Complet *
+                      Nom Complet *{/* Champs requis */}
                     </label>
                     <input
                       type="text"
@@ -252,18 +308,25 @@ export default function ContactPage() {
                       onChange={handleInputChange}
                       required
                       aria-required="true"
-                      aria-describedby="name-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      aria-describedby={errors.name ? "name-help name-error" : "name-help"}
+                      aria-invalid={Boolean(errors.name)}
+                      autoComplete="name"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                       placeholder="Votre nom et prénom"
                     />
                     <div id="name-help" className="text-xs text-charcoal/60 mt-1">
                       Votre nom complet pour personnaliser notre échange
                     </div>
+                    {errors.name && (
+                      <div id="name-error" role="alert" className="error-message">
+                        {errors.name}
+                      </div>
+                    )}
                   </div>
                   
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-charcoal mb-2">
-                      Email *
+                      Email *{/* Champs requis */}
                     </label>
                     <input
                       type="email"
@@ -273,15 +336,20 @@ export default function ContactPage() {
                       onChange={handleInputChange}
                       required
                       aria-required="true"
-                      aria-describedby="email-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      aria-describedby={errors.email ? "email-help email-error" : "email-help"}
+                      aria-invalid={Boolean(errors.email)}
+                      autoComplete="email"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                       placeholder="votre@email.com"
                     />
                     <div id="email-help" className="text-xs text-charcoal/60 mt-1">
                       Adresse email pour vous envoyer le devis et communiquer
                     </div>
-                  </div>
-                </div>
+                    {errors.email && (
+                      <div id="email-error" role="alert" className="error-message">
+                        {errors.email}
+                      </div>
+                    )}
 
                 <div>
                   <label htmlFor="phone" className="block text-sm font-semibold text-charcoal mb-2">
@@ -294,7 +362,8 @@ export default function ContactPage() {
                     value={formData.phone}
                     onChange={handleInputChange}
                     aria-describedby="phone-help"
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                    autoComplete="tel"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 focus:ring-2 focus:ring-magenta/20"
                     placeholder="+33 6 XX XX XX XX"
                   />
                   <div id="phone-help" className="text-xs text-charcoal/60 mt-1">
@@ -315,8 +384,9 @@ export default function ContactPage() {
                       onChange={handleInputChange}
                       required
                       aria-required="true"
-                      aria-describedby="project-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      aria-describedby={errors.project ? "project-help project-error" : "project-help"}
+                      aria-invalid={Boolean(errors.project)}
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream focus:ring-2 focus:ring-magenta/20"
                     >
                       <option value="">Sélectionnez un type de projet</option>
                       {projectTypes.map((type, index) => (
@@ -326,6 +396,11 @@ export default function ContactPage() {
                     <div id="project-help" className="text-xs text-charcoal/60 mt-1">
                       Choisissez le type qui correspond le mieux à votre besoin
                     </div>
+                    {errors.project && (
+                      <div id="project-error" role="alert" className="error-message">
+                        {errors.project}
+                      </div>
+                    )}
                   </div>
                   
                   <div>
@@ -338,7 +413,7 @@ export default function ContactPage() {
                       value={formData.budget}
                       onChange={handleInputChange}
                       aria-describedby="budget-help"
-                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 focus:ring-2 focus:ring-magenta/20"
+                      className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream focus:ring-2 focus:ring-magenta/20"
                     >
                       <option value="">Sélectionnez une fourchette de budget</option>
                       {budgetRanges.map((range, index) => (
@@ -384,14 +459,20 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     required
                     aria-required="true"
-                    aria-describedby="message-help"
+                    aria-describedby={errors.message ? "message-help message-error" : "message-help"}
+                    aria-invalid={Boolean(errors.message)}
                     rows={6}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 resize-none focus:ring-2 focus:ring-magenta/20"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-powder/30 dark:border-rose-800/30 focus:border-magenta focus:outline-none transition-colors bg-white/50 dark:bg-gray-900/60 text-charcoal dark:text-cream placeholder:text-charcoal/60 dark:placeholder:text-cream/60 resize-none focus:ring-2 focus:ring-magenta/20"
                     placeholder="Parlez-moi de votre vision, vos objectifs, vos besoins spécifiques..."
                   />
                   <div id="message-help" className="text-xs text-charcoal/60 mt-1">
                     Plus vous donnez de détails, plus je peux vous proposer une solution adaptée
                   </div>
+                  {errors.message && (
+                    <div id="message-error" role="alert" className="error-message">
+                      {errors.message}
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-center pt-6">
@@ -411,6 +492,52 @@ export default function ContactPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+
+        {/* RDV Section */}
+        <div id="rdv" className="max-w-4xl mx-auto mt-24">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-rose-powder/30 shadow-rose">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center space-x-2 bg-gradient-rose text-white rounded-full px-6 py-2 mb-6">
+                <Calendar className="w-5 h-5" aria-hidden="true" />
+                <span className="font-medium">Prendre Rendez-vous</span>
+              </div>
+              <h3 className="font-playfair text-3xl font-bold text-charcoal mb-4">
+                Échange de 20 minutes pour cadrer votre projet
+              </h3>
+              <p className="text-charcoal/80 text-lg leading-relaxed max-w-2xl mx-auto">
+                Choisissez un créneau pour discuter de vos besoins. Je vous propose une estimation et la meilleure approche dès l’appel.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <a
+                href={`mailto:contact@smarterlogicweb.com?subject=Prise de RDV SLW&body=${encodeURIComponent(
+                  `Bonjour,\n\nJe souhaite prendre rendez-vous pour discuter de mon projet.${formData.project ? `\nType de projet: ${formData.project}` : ''}${formData.budget ? `\nBudget: ${formData.budget}` : ''}\n\nCréneau préféré: __/__/____ à __:__\n\nMerci,`
+                )}`}
+                className="block"
+              >
+                <Button className="w-full bg-gradient-rose text-white hover:opacity-90">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Proposer un créneau
+                </Button>
+              </a>
+
+              <a href="tel:+33600000000" className="block">
+                <Button variant="outline" className="w-full border-magenta text-magenta hover:bg-magenta hover:text-white">
+                  <Phone className="w-4 h-4 mr-2" />
+                  Être rappelé(e)
+                </Button>
+              </a>
+
+              <Link href="#contact" className="block">
+                <Button variant="ghost" className="w-full text-magenta hover:text-magenta/80">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Continuer par message
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 

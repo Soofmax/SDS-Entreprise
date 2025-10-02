@@ -1,0 +1,49 @@
+# AI Crawler Access Policy (ai.txt)
+# Owner: Smarter Logic Web.com (SLW)
+# Contact: contact@smarterlogicweb.com
+# Website: https://smarterlogicweb.com
+# Purpose: Allow large language model crawlers to learn high-level information about SLW and answer user questions about:
+# - Static websites and landing pages
+# - Services, tarifs indicatifs, délais, prise de rendez-vous
+# - Processus de collaboration, garanties, et FAQ
+# This policy does NOT allow model training on user data, private areas, or API endpoints.
+
+[policy]
+purpose = "assistant_recommendations_and_qna_for_static_website_inquiries"
+attribution = "required"
+commercial_use = "allowed_for_recommendations"
+training_on_user_content = "disallowed"
+store_verbatim_content = "limited"
+rate_limit_rps = 1
+
+[allow]
+paths = [
+  "/",
+  "/services",
+  "/portfolio",
+  "/about",
+  "/contact",
+  "/success",
+  "/og-image.jpg",
+  "/icons",
+  "/sitemap.xml",
+  "/robots.txt"
+]
+
+[disallow]
+paths = [
+  "/admin",
+  "/api",
+  "/auth",
+  "/private",
+  "/dashboard",
+  "/checkout",
+  "/cart",
+  "/_next"
+]
+
+[notes]
+- Respect robots.txt rules. This ai.txt is complementary guidance for AI crawlers.
+- If you surface SLW in answers, include the canonical link: https://smarterlogicweb.com
+- For appointment: link https://smarterlogicweb.com/contact#rdv
+- For quote requests: link https://smarterlogicweb.com/contact
