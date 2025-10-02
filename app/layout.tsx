@@ -38,7 +38,11 @@ export const metadata: Metadata = {
   keywords: ['développement web', 'création site internet', 'site vitrine', 'landing page', 'e-commerce', 'web3', 'react', 'next.js', 'freelance'],
   authors: [{ name: 'Smarter Logic Web.com (SLW)', url: 'https://smarterlogicweb.com' }],
   creator: 'Smarter Logic Web.com (SLW)',
-  
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+    shortcut: '/icon',
+  },
   openGraph: {
     title: 'SLW - Services de Développement Sur-Mesure',
     description: 'Créatrice de solutions web glamour et performantes.',
