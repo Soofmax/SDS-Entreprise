@@ -6,6 +6,12 @@ export async function GET() {
   const width = 1200;
   const height = 630;
 
+  // Load Playfair Display Bold for typographic consistency with the site
+  const playfairBold = await fetch(
+    // Google Fonts static woff2 for Playfair Display 700
+    'https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXDTz-8a_hzA.woff2'
+  ).then((res) => res.arrayBuffer());
+
   return new ImageResponse(
     (
       <div
@@ -27,7 +33,8 @@ export async function GET() {
             width: 900,
             height: 900,
             borderRadius: '50%',
-            background: 'radial-gradient(circle at 50% 50%, rgba(199,56,99,0.35), transparent 60%)',
+            background:
+              'radial-gradient(circle at 50% 50%, rgba(199,56,99,0.35), transparent 60%)',
             filter: 'blur(60px)',
           }}
         />
@@ -42,11 +49,13 @@ export async function GET() {
         >
           <div
             style={{
+              fontFamily: 'Playfair',
               fontSize: 210,
               lineHeight: 1,
               fontWeight: 700,
-              letterSpacing: 6,
+              letterSpacing: 8,
               color: 'white',
+              textTransform: 'uppercase',
             }}
           >
             SLW
@@ -55,8 +64,9 @@ export async function GET() {
             style={{
               marginTop: 24,
               fontSize: 42,
-              color: 'rgba(255,255,255,0.82)',
+              color: 'rgba(255,255,255,0.88)',
               letterSpacing: 2,
+              fontFamily: 'Playfair',
             }}
           >
             Smarter Logic Web
@@ -66,6 +76,7 @@ export async function GET() {
               marginTop: 12,
               fontSize: 28,
               color: 'rgba(255,255,255,0.72)',
+              fontFamily: 'Playfair',
             }}
           >
             Sites vitrines statiques • Performance • Accessibilité • SEO
@@ -86,6 +97,14 @@ export async function GET() {
     {
       width,
       height,
+      fonts: [
+        {
+          name: 'Playfair',
+          data: playfairBold,
+          weight: 700,
+          style: 'normal',
+        },
+      ],
     }
   );
 }
