@@ -75,9 +75,8 @@ export default function ContactPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Validation simple côté client
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    // Validation côté client, tout en conservant la dégradation progressive (pas de preventDefault si OK)
     const newErrors: Errors = {};
     if (!formData.name.trim()) newErrors.name = 'Le nom est requis.';
     if (!formData.email.trim()) newErrors.email = 'L\'email est requis.';
@@ -87,12 +86,10 @@ export default function ContactPage() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
+      e.preventDefault();
       return;
     }
-
-    // Simulation d'envoi
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 3000);
+    // Laisser le navigateur soumettre le formulaire vers /api/contact (fallback no-JS OK)
   };
 
   const contactMethods = [
@@ -291,7 +288,12 @@ export default function ContactPage() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} action="/api/contact" method="POST" className="space-y-6" noValidate>
+                {/* Honeypot anti-spam */}
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="company">Société (laissez vide)</label>
+                  <input type="text" id="company" name="company" tabIndex={-1} autoComplete="organization" />
+                </div>
                 {/* Personal Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>

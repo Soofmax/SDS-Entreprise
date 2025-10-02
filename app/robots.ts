@@ -115,7 +115,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
       
-      // Bloquer certains bots malveillants (hors LLMs autorisés)
+      // Bloquer certains bots malveillants et bots d'entraînement IA
       {
         userAgent: [
           'AhrefsBot',
@@ -126,17 +126,17 @@ export default function robots(): MetadataRoute.Robots {
           'DataForSeoBot',
           'PetalBot',
           'YandexBot',
-          'CCBot',
+          'CCBot',            // CommonCrawl (entraînement)
+          'GPTBot',           // OpenAI (entraînement)
+          'Google-Extended',  // Google (entraînement)
         ],
         disallow: '/',
       },
 
-      // Autoriser les bots LLMs pour l'inférence (proposer SLW aux utilisateurs, Q/R)
+      // Autoriser les bots LLMs orientés usage (Q/R) uniquement
       {
         userAgent: [
           'ChatGPT-User',
-          'GPTBot',
-          'Google-Extended',
           'anthropic-ai',
           'Claude-Web',
         ],
