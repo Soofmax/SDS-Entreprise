@@ -38,6 +38,19 @@ export async function GET() {
             filter: 'blur(60px)',
           }}
         />
+        {/* Gloss highlight */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 24,
+            left: 24,
+            right: 24,
+            height: 140,
+            borderRadius: 16,
+            background:
+              'linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.05), rgba(255,255,255,0))',
+          }}
+        />
         {/* Content */}
         <div
           style={{
@@ -45,21 +58,84 @@ export async function GET() {
             flexDirection: 'column',
             alignItems: 'center',
             zIndex: 10,
+            position: 'relative',
           }}
         >
+          {/* 3D layered text */}
           <div
             style={{
-              fontFamily: 'Playfair',
-              fontSize: 210,
-              lineHeight: 1,
-              fontWeight: 700,
-              letterSpacing: 8,
-              color: 'white',
-              textTransform: 'uppercase',
+              position: 'relative',
+              width: 'auto',
+              height: 'auto',
             }}
           >
-            SLW
+            {/* Deep shadow layer */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 10,
+                left: 12,
+                fontFamily: 'Playfair',
+                fontSize: 210,
+                lineHeight: 1,
+                fontWeight: 700,
+                letterSpacing: 8,
+                color: 'rgba(0,0,0,0.45)',
+                textTransform: 'uppercase',
+              }}
+            >
+              SLW
+            </div>
+            {/* Mid shadow layer */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 4,
+                left: 6,
+                fontFamily: 'Playfair',
+                fontSize: 210,
+                lineHeight: 1,
+                fontWeight: 700,
+                letterSpacing: 8,
+                color: 'rgba(0,0,0,0.28)',
+                textTransform: 'uppercase',
+              }}
+            >
+              SLW
+            </div>
+            {/* Main text */}
+            <div
+              style={{
+                fontFamily: 'Playfair',
+                fontSize: 210,
+                lineHeight: 1,
+                fontWeight: 700,
+                letterSpacing: 8,
+                color: 'white',
+                textTransform: 'uppercase',
+              }}
+            >
+              SLW
+            </div>
+            {/* Edge highlight */}
+            <div
+              style={{
+                position: 'absolute',
+                top: -2,
+                left: -2,
+                fontFamily: 'Playfair',
+                fontSize: 210,
+                lineHeight: 1,
+                fontWeight: 700,
+                letterSpacing: 8,
+                color: 'rgba(255,255,255,0.18)',
+                textTransform: 'uppercase',
+              }}
+            >
+              SLW
+            </div>
           </div>
+
           <div
             style={{
               marginTop: 24,
