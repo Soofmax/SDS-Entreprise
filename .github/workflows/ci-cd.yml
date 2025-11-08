@@ -137,6 +137,7 @@ jobs:
       - name: 🗄️ Setup test database
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sds_test
+          SEED_DEMO_DATA: 'false'
         run: |
           npx prisma generate
           npx prisma db push --skip-generate
