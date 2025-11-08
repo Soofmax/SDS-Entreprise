@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db/client';
 
 // Configuration Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-08-27.basil',
   typescript: true,
 });
 
@@ -279,7 +279,7 @@ export async function createInvoice(
   });
 
   // Finaliser la facture
-  return stripe.invoices.finalizeInvoice(invoice.id);
+  return stripe.invoices.finalizeInvoice(invoice.id as string);
 }
 
 /**
@@ -421,6 +421,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
       expand: ['payment_intent', 'customer']
     });
 
+    // Préparer des identifiants sûrs
+    const paymentIntentId =
+      typeof fullSession.payment_intent === 'string'
+        ? fullSession.payment_intent
+        : fullSession.payment_intent?.id;
+
+    const customerId =
+      typeof fullSession.customer === 'string'
+        ? fullSession.customer
+        : fullSession.customer?.id;
+
     // Enregistrer la commande
     await prisma.analyticsEvent.create({
       data: {
@@ -428,8 +439,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
         category: 'form_submission',
         properties: {
           sessionId: session.id,
-          paymentIntentId: fullSession.payment_intent?.id,
-          customerId: fullSession.customer?.id,
+          paymentIntentId,
+          customerId,
           amount: session.amount_total,
           currency: session.currency,
           productId: session.metadata?.productId,

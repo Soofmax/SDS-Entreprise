@@ -1,4 +1,4 @@
-import { ContactFormData, FranceNumFormData } from '@/lib/types';
+import { ContactFormData, FranceNumFormData, ServiceCategory, CompanySize, BusinessSector } from '@/lib/types';
 
 // Types pour la validation
 export interface ValidationRule<T = any> {
@@ -133,14 +133,14 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
     Validator.email('Format d\'email invalide')
   ],
   phone: [
-    Validator.custom(
-      (value: string) => !value || Validator.phone().validate(value),
+    Validator.custom<string | undefined>(
+      (value) => (typeof value !== 'string' || value.length === 0) ? true : Validator.phone().validate(value),
       'Format de téléphone invalide'
     )
   ],
   project: [
     Validator.required('Le type de projet est requis'),
-    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'])
+    Validator.oneOf<ServiceCategory | ''>(['vitrine', 'ecommerce', 'application', 'refonte', 'seo', 'maintenance'])
   ],
   budget: [
     Validator.required('Le budget est requis')
@@ -155,18 +155,18 @@ export const contactFormSchema: ValidationSchema<ContactFormData> = {
 export const franceNumFormSchema: ValidationSchema<FranceNumFormData> = {
   companySize: [
     Validator.required('La taille de l\'entreprise est requise'),
-    Validator.oneOf(['tpe', 'pme', 'eti', 'ge'])
+    Validator.oneOf<CompanySize | ''>(['tpe', 'pme', 'eti', 'ge'])
   ],
   sector: [
     Validator.required('Le secteur d\'activité est requis'),
-    Validator.oneOf(['commerce', 'artisanat', 'services', 'industrie', 'agriculture', 'autre'])
+    Validator.oneOf<BusinessSector | ''>(['commerce', 'artisanat', 'services', 'industrie', 'agriculture', 'autre'])
   ],
   location: [
     Validator.required('La localisation est requise')
   ],
   projectType: [
     Validator.required('Le type de projet est requis'),
-    Validator.oneOf(['vitrine', 'ecommerce', 'application', 'refonte'])
+    Validator.oneOf<ServiceCategory | ''>(['vitrine', 'ecommerce', 'application', 'refonte'])
   ],
   budget: [
     Validator.required('Le budget est requis')
