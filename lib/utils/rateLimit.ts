@@ -10,26 +10,22 @@ export interface RateLimitResult {
 
 // Configuration par défaut
 const DEFAULT_CONFIG = {
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 10, // 10 requêtes par fenêtre
+  windowMs: 15 * 60 * 1000,
+  maxRequests: 10,
   skipSuccessfulRequests: false,
   skipFailedRequests: false,
 };
 
-// Store en mémoire pour le rate limiting
-// En production, utiliser Redis ou une base de données
+// Store en mémoire
 class MemoryStore {
   private store = new Map<string, { count: number; resetTime: number }>();
 
   get(key: string): { count: number; resetTime: number } | undefined {
     const data = this.store.get(key);
-    
-    // Nettoyer les entrées expirées
     if (data && data.resetTime < Date.now()) {
       this.store.delete(key);
       return undefined;
     }
-    
     return data;
   }
 
@@ -40,52 +36,79 @@ class MemoryStore {
   increment(key: string, windowMs: number): { count: number; resetTime: number } {
     const now = Date.now();
     const existing = this.get(key);
-    
     if (existing) {
       existing.count++;
       this.set(key, existing);
       return existing;
     } else {
-      const newData = {
-        count: 1,
-        resetTime: now + windowMs,
-      };
+      const newData = { count: 1, resetTime: now + windowMs };
       this.set(key, newData);
       return newData;
     }
   }
 
-  // Nettoyer périodiquement les entrées expirées
   cleanup(): void {
     const now = Date.now();
     for (const [key, data] of this.store.entries()) {
-      if (data.resetTime < now) {
-        this.store.delete(key);
-      }
+      if (data.resetTime < now) this.store.delete(key);
     }
   }
 }
 
-const store = new MemoryStore();
+const memoryStore = new MemoryStore();
+setInterval(() => memoryStore.cleanup(), 5 * 60 * 1000);
 
-// Nettoyer le store toutes les 5 minutes
-setInterval(() => {
-  store.cleanup();
-}, 5 * 60 * 1000);
+// Upstash REST Store (optionnel en prod)
+class UpstashStore {
+  private baseUrl: string;
+  private token: string;
+
+  constructor(url: string, token: string) {
+    this.baseUrl = url.replace(/\/+$/, '');
+    this.token = token;
+  }
+
+  async increment(key: string, windowMs: number): Promise<{ count: number; resetTime: number }> {
+    const expireSeconds = Math.ceil(windowMs / 1000);
+    // Pipeline: INCR key ; EXPIRE key seconds NX
+    const res = await fetch(`${this.baseUrl}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([
+        ['INCR', key],
+        ['EXPIRE', key, `${expireSeconds}`, 'NX'],
+        ['PTTL', key],
+      ]),
+    });
+
+    if (!res.ok) {
+      // Fallback mémoire si Upstash indisponible
+      return memoryStore.increment(key, windowMs);
+    }
+    const data = (await res.json()) as Array<{ result: number }>;
+    const count = Number(data?.[0]?.result ?? 1);
+    const pttl = Number(data?.[2]?.result ?? windowMs);
+    const resetTime = Date.now() + (pttl > 0 ? pttl : windowMs);
+    return { count, resetTime };
+  }
+}
+
+const upstash =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new UpstashStore(process.env.UPSTASH_REDIS_REST_URL, process.env.UPSTASH_REDIS_REST_TOKEN)
+    : null;
 
 /**
  * Extraire l'identifiant unique du client
  */
 function getClientId(request: NextRequest): string {
-  // Essayer d'obtenir l'IP réelle
   const forwarded = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
   const ip = forwarded?.split(',')[0] || realIp || 'unknown';
-  
-  // Ajouter le User-Agent pour plus de granularité
   const userAgent = request.headers.get('user-agent') || '';
-  
-  // Créer un hash simple pour l'identifiant
   return `${ip}:${userAgent.slice(0, 50)}`;
 }
 
@@ -97,20 +120,20 @@ export async function rateLimit(
   config: Partial<typeof DEFAULT_CONFIG> = {}
 ): Promise<RateLimitResult> {
   const { windowMs, maxRequests } = { ...DEFAULT_CONFIG, ...config };
-  
   const clientId = getClientId(request);
   const key = `rate_limit:${clientId}`;
-  
-  const data = store.increment(key, windowMs);
-  
+  const data = upstash
+    ? await upstash.increment(key, windowMs)
+    : memoryStore.increment(key, windowMs);
+
   const success = data.count <= maxRequests;
   const remaining = Math.max(0, maxRequests - data.count);
-  
+
   return {
     success,
     limit: maxRequests,
     remaining,
-    reset: Math.ceil(data.resetTime / 1000), // Timestamp Unix
+    reset: Math.ceil(data.resetTime / 1000),
   };
 }
 
@@ -119,8 +142,8 @@ export async function rateLimit(
  */
 export async function rateLimitForm(request: NextRequest): Promise<RateLimitResult> {
   return rateLimit(request, {
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    maxRequests: 3, // 3 soumissions max par 10 minutes
+    windowMs: 10 * 60 * 1000,
+    maxRequests: 3,
   });
 }
 
@@ -129,8 +152,8 @@ export async function rateLimitForm(request: NextRequest): Promise<RateLimitResu
  */
 export async function rateLimitRead(request: NextRequest): Promise<RateLimitResult> {
   return rateLimit(request, {
-    windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 60, // 60 requêtes par minute
+    windowMs: 60 * 1000,
+    maxRequests: 60,
   });
 }
 
@@ -139,8 +162,8 @@ export async function rateLimitRead(request: NextRequest): Promise<RateLimitResu
  */
 export async function rateLimitCalculation(request: NextRequest): Promise<RateLimitResult> {
   return rateLimit(request, {
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 20, // 20 calculs par 5 minutes
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 20,
   });
 }
 
@@ -153,15 +176,12 @@ export function withRateLimit(
 ) {
   return async (request: NextRequest): Promise<Response> => {
     const { success, limit, remaining, reset } = await rateLimit(request, config);
-    
+
     if (!success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: {
-            code: 'RATE_LIMIT_EXCEEDED',
-            message: 'Trop de requêtes. Veuillez réessayer plus tard.',
-          }
+          error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Trop de requêtes. Veuillez réessayer plus tard.' },
         }),
         {
           status: 429,
@@ -175,14 +195,11 @@ export function withRateLimit(
         }
       );
     }
-    
+
     const response = await handler(request);
-    
-    // Ajouter les headers de rate limiting à la réponse
     response.headers.set('X-RateLimit-Limit', limit.toString());
     response.headers.set('X-RateLimit-Remaining', remaining.toString());
     response.headers.set('X-RateLimit-Reset', reset.toString());
-    
     return response;
   };
 }
@@ -192,35 +209,22 @@ export function withRateLimit(
  */
 export class EndpointRateLimiter {
   private configs = new Map<string, Partial<typeof DEFAULT_CONFIG>>();
-  
+
   setConfig(endpoint: string, config: Partial<typeof DEFAULT_CONFIG>): void {
     this.configs.set(endpoint, config);
   }
-  
+
   async check(request: NextRequest, endpoint: string): Promise<RateLimitResult> {
     const config = this.configs.get(endpoint) || {};
     return rateLimit(request, config);
   }
 }
 
-// Instance globale pour la configuration des endpoints
 export const endpointLimiter = new EndpointRateLimiter();
 
-// Configuration des endpoints
-endpointLimiter.setConfig('/api/contact', {
-  windowMs: 10 * 60 * 1000,
-  maxRequests: 3,
-});
-
-endpointLimiter.setConfig('/api/france-num/calculate', {
-  windowMs: 5 * 60 * 1000,
-  maxRequests: 20,
-});
-
-endpointLimiter.setConfig('/api/portfolio', {
-  windowMs: 1 * 60 * 1000,
-  maxRequests: 60,
-});
+endpointLimiter.setConfig('/api/contact', { windowMs: 10 * 60 * 1000, maxRequests: 3 });
+endpointLimiter.setConfig('/api/france-num/calculate', { windowMs: 5 * 60 * 1000, maxRequests: 20 });
+endpointLimiter.setConfig('/api/portfolio', { windowMs: 60 * 1000, maxRequests: 60 });
 
 /**
  * Utilitaire pour créer des clés de rate limiting personnalisées
@@ -246,17 +250,10 @@ export async function rateLimitWithWhitelist(
   const forwarded = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
   const ip = forwarded?.split(',')[0] || realIp || 'unknown';
-  
-  // Vérifier si l'IP est dans la whitelist
+
   if (whitelist.includes(ip)) {
-    return {
-      success: true,
-      limit: Infinity,
-      remaining: Infinity,
-      reset: 0,
-    };
-  }
-  
+    return { success: true, limit: Infinity, remaining: Infinity, reset: 0 };
+    }
   return rateLimit(request, config);
 }
 

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
 import { withRateLimit } from '@/lib/utils/rateLimit';
+import { verifyCsrf } from '@/lib/utils/csrf';
 
 // GET /api/analytics - Récupérer les données analytics
 export async function GET(request: NextRequest) {
@@ -226,6 +227,10 @@ export const POST = withRateLimit(async (request: NextRequest) => {
         { error: 'CSRF protection: invalid origin' },
         { status: 403 }
       );
+    }
+    // Double-submit cookie (optionnel via ENFORCE_CSRF)
+    if (process.env.ENFORCE_CSRF === 'true' && !verifyCsrf(request)) {
+      return NextResponse.json({ error: 'CSRF token invalid' }, { status: 403 });
     }
 
     const body = await request.json();

@@ -4,6 +4,7 @@ import { prisma, connectWithRetry } from '@/lib/db/client';
 import { rateLimit } from '@/lib/utils/rateLimit';
 import { sendContactEmail } from '@/lib/services/email-simple';
 import { trackEvent } from '@/lib/services/email-simple';
+import { verifyCsrf } from '@/lib/utils/csrf';
 
 // Schéma de validation Zod
 const contactSchema = z.object({
@@ -119,6 +120,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Double-submit cookie (optionnel via ENFORCE_CSRF)
+    if (process.env.ENFORCE_CSRF === 'true' && !verifyCsrf(request)) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: { code: 'CSRF_TOKEN_INVALID', message: 'Token CSRF invalide' }
+        },
+        { status: 403 }
+      );
+    }
+
     // 2. Parsing et validation des données
     const body = await request.json();
     
@@ -156,7 +168,6 @@ export async function POST(request: NextRequest) {
           ...metadata,
           source: sanitizedData.source || 'contact_form',
           status: 'NEW',
-          priority: 'MEDIUM',
         },
       });
     });

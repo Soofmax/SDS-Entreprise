@@ -64,18 +64,18 @@ export const POST = withRateLimit(async (request: NextRequest) => {
     const { fileTypeFromBuffer } = await import('file-type');
     const detected = await fileTypeFromBuffer(buffer);
 
-    // Vérification stricte extension/MIME par magic bytes
+    // Vérification stricte par magic bytes: détecté et autorisé
     const allowedMimes = new Set(Object.values(ALLOWED_TYPES).flat());
-    const mimeToCheck = detected?.mime || file.type;
-    if (!allowedMimes.has(mimeToCheck)) {
+    if (!detected || !allowedMimes.has(detected.mime)) {
       return NextResponse.json(
         { error: 'Type de fichier non autorisé (magic bytes mismatch)' },
         { status: 400 }
       );
     }
+    const mimeToCheck = detected.mime;
 
     // Générer un nom de fichier unique
-    const extension = detected?.ext ? `.${detected.ext}` : path.extname(file.name) || '';
+    const extension = detected.ext ? `.${detected.ext}` : '';
     const fileName = `${uuidv4()}${extension}`;
 
     // Option S3 si configuré

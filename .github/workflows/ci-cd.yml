@@ -308,6 +308,16 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🗄️ Run Prisma migrate deploy (staging)
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: npx prisma migrate deploy
+
       - name: 🚀 Deploy to Vercel Staging
         uses: amondnet/vercel-action@v25
         with:
@@ -348,14 +358,17 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🚀 Deploy to Vercel Production
-        uses: amondnet/vercel-action@v25
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          scope: ${{ secrets.VERCEL_ORG_ID }}
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🗄️ Run Prisma migrate deploy (production)
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      - name: 🚀 Deploy to VercelRG_ID }}
 
       - name: 🔍 Production health check
         run: |

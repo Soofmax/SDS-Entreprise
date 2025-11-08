@@ -30,6 +30,8 @@
     "tests",
     "tests/**/*",
     "vitest.config.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "scripts",
+    "scripts/**/*"
   ]
 }
