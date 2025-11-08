@@ -125,7 +125,7 @@
     "@netlify/plugin-nextjs": "^5.8.1",
     "pino-pretty": "^11.2.2",
     "openapi-typescript": "^7.3.0",
-    "zod-to-openapi": "^7.1.1"
+    "@asteasolutions/zod-to-openapi": "^8.1.0"
   },
   "scripts": {
     "dev": "next dev",
