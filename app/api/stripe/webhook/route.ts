@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe/config';
+import { getStripe } from '@/lib/stripe/config';
 import { prisma } from '@/lib/db/prisma';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
@@ -16,6 +16,8 @@ async function getAdminUserId(): Promise<string | null> {
 // POST /api/stripe/webhook - Gérer les webhooks Stripe
 export async function POST(request: NextRequest) {
   try {
+    const stripe = getStripe();
+
     const body = await request.text();
     const headersList = headers();
     const signature = headersList.get('stripe-signature');
