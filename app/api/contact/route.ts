@@ -100,6 +100,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 1.b CSRF origin check (double-submit cookie non implémenté ici)
+    const origin = request.headers.get('origin') || '';
+    const allowedOrigins = [
+      process.env.NEXTAUTH_URL || '',
+      process.env.NEXT_PUBLIC_APP_URL || '',
+    ].filter(Boolean);
+    if (allowedOrigins.length && !allowedOrigins.some((o) => origin.startsWith(o))) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: {
+            code: 'CSRF_ORIGIN_INVALID',
+            message: 'Requête refusée (origine invalide).',
+          }
+        },
+        { status: 403 }
+      );
+    }
+
     // 2. Parsing et validation des données
     const body = await request.json();
     
@@ -237,7 +256,13 @@ export async function POST(request: NextRequest) {
 // Méthode GET pour récupérer les statistiques (admin seulement)
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Ajouter l'authentification admin ici
+    // Authentification admin requise
+    const { getServerSession } = await import('next-auth');
+    const { authOptions } = await import('@/lib/auth/config');
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'EDITOR')) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
     
     const stats = await connectWithRetry(async () => {
       const [total, today, thisWeek, thisMonth] = await Promise.all([

@@ -15,7 +15,7 @@ function requireStripeKey(): string {
 export function getStripe(): Stripe {
   if (!cachedStripe) {
     cachedStripe = new Stripe(requireStripeKey(), {
-      apiVersion: '2025-08-27.basil',
+      // Use SDK default runtime API version to avoid invalid/custom tags
       typescript: true,
     });
   }

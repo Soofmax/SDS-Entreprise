@@ -46,9 +46,6 @@ RUN npm ci --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Copy environment variables for build
-COPY .env.example .env.local
-
 # Generate Prisma client
 RUN npx prisma generate
 

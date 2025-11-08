@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/nextauth';
+import { authOptions } from '@/lib/auth/config';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { withRateLimit } from '@/lib/utils/rateLimit';
 
 // Configuration
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -17,7 +18,7 @@ const ALLOWED_TYPES = {
 const UPLOAD_DIR = path.join(process.cwd(), 'public/uploads');
 
 // POST /api/upload - Upload de fichiers
-export async function POST(request: NextRequest) {
+export const POST = withRateLimit(async (request: NextRequest) => {
   try {
     // Vérification de l'authentification
     const session = await getServerSession(authOptions);
@@ -25,9 +26,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
+    // CSRF protection (origin check)
+    const origin = request.headers.get('origin') || '';
+    const allowedOrigins = [
+      process.env.NEXTAUTH_URL || '',
+      process.env.NEXT_PUBLIC_APP_URL || '',
+    ].filter(Boolean);
+    if (allowedOrigins.length && !allowedOrigins.some((o) => origin.startsWith(o))) {
+      return NextResponse.json(
+        { error: 'CSRF protection: invalid origin' },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const category = formData.get('category') as string || 'general';
+    const category = (formData.get('category') as string) || 'general';
 
     if (!file) {
       return NextResponse.json(
@@ -44,37 +58,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérification du type de fichier
-    const fileType = file.type;
-    const isAllowed = Object.values(ALLOWED_TYPES).some(types => 
-      types.includes(fileType)
-    );
+    // Sauvegarder en buffer et vérifier magic bytes (type réel)
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const { fileTypeFromBuffer } = await import('file-type');
+    const detected = await fileTypeFromBuffer(buffer);
 
-    if (!isAllowed) {
+    // Vérification stricte extension/MIME par magic bytes
+    const allowedMimes = new Set(Object.values(ALLOWED_TYPES).flat());
+    const mimeToCheck = detected?.mime || file.type;
+    if (!allowedMimes.has(mimeToCheck)) {
       return NextResponse.json(
-        { error: 'Type de fichier non autorisé' },
+        { error: 'Type de fichier non autorisé (magic bytes mismatch)' },
         { status: 400 }
       );
     }
 
-    // Créer le dossier d'upload s'il n'existe pas
-    const categoryDir = path.join(UPLOAD_DIR, category);
-    if (!existsSync(categoryDir)) {
-      await mkdir(categoryDir, { recursive: true });
-    }
-
     // Générer un nom de fichier unique
-    const fileExtension = path.extname(file.name);
-    const fileName = `${uuidv4()}${fileExtension}`;
-    const filePath = path.join(categoryDir, fileName);
+    const extension = detected?.ext ? `.${detected.ext}` : path.extname(file.name) || '';
+    const fileName = `${uuidv4()}${extension}`;
 
-    // Sauvegarder le fichier
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    // Option S3 si configuré
+    const useS3 = !!process.env.AWS_S3_BUCKET;
+    let publicUrl: string;
 
-    // URL publique du fichier
-    const publicUrl = `/uploads/${category}/${fileName}`;
+    if (useS3) {
+      const { S3Client, PutObjectCommand } = await import('@aws-sdk/client-s3');
+
+      const s3 = new S3Client({
+        region: process.env.AWS_REGION || 'eu-west-3',
+      });
+
+      const key = `${category}/${fileName}`;
+      await s3.send(new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET!,
+        Key: key,
+        Body: buffer,
+        ContentType: mimeToCheck,
+        ACL: 'private',
+      }));
+
+      // Pour la réponse, retourner un chemin logique; pour lecture côté client, utiliser un endpoint proxy ou générer une URL signée GetObject côté serveur
+      publicUrl = `s3://${process.env.AWS_S3_BUCKET}/${key}`;
+    } else {
+      // Local fallback (public folder)
+      const categoryDir = path.join(UPLOAD_DIR, category);
+      if (!existsSync(categoryDir)) {
+        await mkdir(categoryDir, { recursive: true });
+      }
+      const filePath = path.join(categoryDir, fileName);
+      await writeFile(filePath, buffer);
+      publicUrl = `/uploads/${category}/${fileName}`;
+    }
 
     // Métadonnées du fichier
     const fileInfo = {
@@ -83,14 +118,12 @@ export async function POST(request: NextRequest) {
       fileName,
       filePath: publicUrl,
       size: file.size,
-      type: file.type,
+      type: mimeToCheck,
       category,
       uploadedBy: session.user.id,
       uploadedAt: new Date().toISOString(),
+      storage: useS3 ? 's3' : 'local',
     };
-
-    // TODO: Sauvegarder les métadonnées en base de données si nécessaire
-    // await prisma.file.create({ data: fileInfo });
 
     return NextResponse.json({
       success: true,
@@ -104,7 +137,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}, { windowMs: 60 * 1000, maxRequests: 20 });
 
 // GET /api/upload - Lister les fichiers uploadés (admin)
 export async function GET(request: NextRequest) {
