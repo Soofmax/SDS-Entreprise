@@ -418,16 +418,18 @@ jobs:
           fields: repo,message,commit,author,action,eventName,ref,workflow
 
       - name: 📧 Email notification
-        if: failure()
+        if: ${{ failure() && secrets.EMAIL_USERNAME != '' && secrets.EMAIL_PASSWORD != '' }}
         uses: dawidd6/action-send-mail@v3
+        continue-on-error: true
         with:
           server_address: smtp.gmail.com
-          server_port: 587
+          server_port: 465
+          secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: '❌ SDS Enterprise - Deployment Failed'
           to: dev@salwadevstudio.com
-          from: ci-cd@salwadevstudio.com
+          from: SDS Enterprise CI <${{ secrets.EMAIL_USERNAME }}>
           body: |
             Deployment failed for commit ${{ github.sha }}
             
