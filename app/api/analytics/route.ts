@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/nextauth';
+import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
+import { withRateLimit } from '@/lib/utils/rateLimit';
+import { verifyCsrf } from '@/lib/utils/csrf';
 
 // GET /api/analytics - Récupérer les données analytics
 export async function GET(request: NextRequest) {
@@ -212,8 +214,25 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/analytics - Enregistrer un événement analytics
-export async function POST(request: NextRequest) {
+export const POST = withRateLimit(async (request: NextRequest) => {
   try {
+    // CSRF protection (origin check)
+    const origin = request.headers.get('origin') || '';
+    const allowedOrigins = [
+      process.env.NEXTAUTH_URL || '',
+      process.env.NEXT_PUBLIC_APP_URL || '',
+    ].filter(Boolean);
+    if (allowedOrigins.length && !allowedOrigins.some((o) => origin.startsWith(o))) {
+      return NextResponse.json(
+        { error: 'CSRF protection: invalid origin' },
+        { status: 403 }
+      );
+    }
+    // Double-submit cookie (optionnel via ENFORCE_CSRF)
+    if (process.env.ENFORCE_CSRF === 'true' && !verifyCsrf(request)) {
+      return NextResponse.json({ error: 'CSRF token invalid' }, { status: 403 });
+    }
+
     const body = await request.json();
     const {
       event,
@@ -262,7 +281,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+}, { windowMs: 60 * 1000, maxRequests: 60 });
 
 // DELETE /api/analytics - Nettoyer les anciennes données (admin seulement)
 export async function DELETE(request: NextRequest) {

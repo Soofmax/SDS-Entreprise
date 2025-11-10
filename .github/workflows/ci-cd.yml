@@ -5,9 +5,10 @@ name: 🔄 CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: ['**']
   pull_request:
-    branches: [main, develop]
+    branches: ['**']
+  workflow_dispatch:
   schedule:
     # Run security scans daily at 2 AM UTC
     - cron: '0 2 * * *'
@@ -136,8 +137,10 @@ jobs:
       - name: 🗄️ Setup test database
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sds_test
+          SEED_DEMO_DATA: 'false'
         run: |
-          npx prisma migrate deploy
+          npx prisma generate
+          npx prisma db push --skip-generate
           npx prisma db seed
 
       - name: 🧪 Run unit tests
@@ -305,6 +308,16 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🗄️ Run Prisma migrate deploy (staging)
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: npx prisma migrate deploy
+
       - name: 🚀 Deploy to Vercel Staging
         uses: amondnet/vercel-action@v25
         with:
@@ -344,6 +357,16 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🗄️ Run Prisma migrate deploy (production)
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: npx prisma migrate deploy
 
       - name: 🚀 Deploy to Vercel Production
         uses: amondnet/vercel-action@v25
@@ -395,16 +418,21 @@ jobs:
           fields: repo,message,commit,author,action,eventName,ref,workflow
 
       - name: 📧 Email notification
-        if: failure()
+        if: ${{ failure() && env.EMAIL_USERNAME != '' && env.EMAIL_PASSWORD != '' }}
+        env:
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         uses: dawidd6/action-send-mail@v3
+        continue-on-error: true
         with:
           server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
+          server_port: 465
+          secure: true
+          username: ${{ env.EMAIL_USERNAME }}
+          password: ${{ env.EMAIL_PASSWORD }}
           subject: '❌ SDS Enterprise - Deployment Failed'
           to: dev@salwadevstudio.com
-          from: ci-cd@salwadevstudio.com
+          from: SDS Enterprise CI <${{ env.EMAIL_USERNAME }}>
           body: |
             Deployment failed for commit ${{ github.sha }}
             

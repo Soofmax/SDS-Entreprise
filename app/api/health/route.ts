@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
+import '@/lib/services/sentry';
+import { logger } from '@/lib/utils/logger';
 
 export async function GET() {
   try {
-    // Check database connection
     await prisma.$queryRaw`SELECT 1`;
-    
+    logger.info({ service: 'health', status: 'healthy' });
     return NextResponse.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -15,6 +16,7 @@ export async function GET() {
       }
     });
   } catch (error) {
+    logger.error({ service: 'health', error: (error as Error)?.message });
     return NextResponse.json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),

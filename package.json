@@ -106,7 +106,12 @@
     "typescript": "5.2.2",
     "uuid": "^11.1.0",
     "vaul": "^0.9.9",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@aws-sdk/client-s3": "^3.680.0",
+    "@aws-sdk/s3-request-presigner": "^3.680.0",
+    "file-type": "^18.5.0",
+    "pino": "^9.3.2",
+    "@sentry/node": "^8.30.0"
   },
   "devDependencies": {
     "husky": "^9.0.0",
@@ -117,6 +122,38 @@
     "cross-env": "^7.0.3",
     "prettier": "^3.3.3",
     "@lhci/cli": "^0.13.0",
-    "@netlify/plugin-nextjs": "^5.8.1"
+    "@netlify/plugin-nextjs": "^5.8.1",
+    "pino-pretty": "^11.2.2",
+    "openapi-typescript": "^7.3.0",
+    "@asteasolutions/zod-to-openapi": "^8.1.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "npm run test && npm run test:e2e",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "analyze": "cross-env ANALYZE=true next build",
+    "prepare": "sh -c 'if [ \"$CI\" = \"true\" ] || [ \"$NETLIFY\" = \"true\" ] || [ \"$HUSKY\" = \"0\" ]; then echo \"Skip husky on CI\"; else npx husky install; fi'",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "security:audit": "npm audit",
+    "security:check": "npm audit --audit-level moderate",
+    "performance:lighthouse": "lhci autorun",
+    "performance:bundle": "npm run analyze",
+    "openapi:generate": "tsx scripts/generate-openapi.ts && openapi-typescript public/openapi.json -o types/openapi.d.ts"
   }
 }

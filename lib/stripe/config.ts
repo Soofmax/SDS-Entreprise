@@ -1,13 +1,26 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is required');
+// Provide a lazy, cached Stripe client so missing env doesn't break build-time.
+// The error will be thrown when the API route is actually invoked.
+let cachedStripe: Stripe | null = null;
+
+function requireStripeKey(): string {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error('STRIPE_SECRET_KEY is required');
+  }
+  return key;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-06-20',
-  typescript: true,
-});
+export function getStripe(): Stripe {
+  if (!cachedStripe) {
+    cachedStripe = new Stripe(requireStripeKey(), {
+      // Use SDK default runtime API version to avoid invalid/custom tags
+      typescript: true,
+    });
+  }
+  return cachedStripe;
+}
 
 // Configuration des packages SDS
 export const PACKAGES = {

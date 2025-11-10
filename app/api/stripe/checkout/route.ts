@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, PACKAGES, getStripeMetadata, PackageId } from '@/lib/stripe/config';
+import { getStripe, PACKAGES, getStripeMetadata, PackageId } from '@/lib/stripe/config';
 import { prisma } from '@/lib/db/prisma';
 import { headers } from 'next/headers';
 
 // POST /api/stripe/checkout - Créer une session de paiement
 export async function POST(request: NextRequest) {
   try {
+    const stripe = getStripe();
+
     const body = await request.json();
     const {
       packageId,
@@ -151,6 +153,8 @@ export async function POST(request: NextRequest) {
 // GET /api/stripe/checkout - Récupérer une session
 export async function GET(request: NextRequest) {
   try {
+    const stripe = getStripe();
+
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('session_id');
 

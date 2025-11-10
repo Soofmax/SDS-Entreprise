@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/nextauth';
+import { authOptions } from '@/lib/auth/config';
 import { prisma } from '@/lib/db/prisma';
 import { ContactStatus, ProjectStatus } from '@prisma/client';
 
@@ -117,30 +117,43 @@ export async function GET(request: NextRequest) {
     const contactsWon = contactStats.find(s => s.status === ContactStatus.WON)?._count.id || 0;
     const conversionRate = totalContacts > 0 ? (contactsWon / totalContacts) * 100 : 0;
 
-    // Évolution temporelle (par semaine)
-    const weeklyData = [];
-    for (let i = Math.floor(days / 7); i >= 0; i--) {
-      const weekStart = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
-      const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    // Évolution temporelle (agrégations par semaine)
+    type WeeklyRow = { week: Date; count: bigint };
+    const contactsWeekly = await prisma.$queryRawUnsafe(
+      `
+      SELECT DATE_TRUNC('week', "createdAt") as week, COUNT(*)::bigint as count
+      FROM "contacts"
+      WHERE "createdAt" >= $1
+      GROUP BY week
+      ORDER BY week ASC
+      `,
+      startDate
+    ) as WeeklyRow[];
 
-      const weekContacts = await prisma.contact.count({
-        where: {
-          createdAt: { gte: weekStart, lt: weekEnd },
-        },
-      });
+    const projectsWeekly = await prisma.$queryRawUnsafe(
+      `
+      SELECT DATE_TRUNC('week', "createdAt") as week, COUNT(*)::bigint as count
+      FROM "projects"
+      WHERE "createdAt" >= $1
+      GROUP BY week
+      ORDER BY week ASC
+      `,
+      startDate
+    ) as WeeklyRow[];
 
-      const weekProjects = await prisma.project.count({
-        where: {
-          createdAt: { gte: weekStart, lt: weekEnd },
-        },
-      });
-
-      weeklyData.push({
-        week: weekStart.toISOString().split('T')[0],
-        contacts: weekContacts,
-        projects: weekProjects,
-      });
+    // Fusionner par semaine
+    const map = new Map<string, { week: string; contacts: number; projects: number }>();
+    for (const row of contactsWeekly) {
+      const key = new Date(row.week).toISOString().split('T')[0];
+      map.set(key, { week: key, contacts: Number(row.count), projects: 0 });
     }
+    for (const row of projectsWeekly) {
+      const key = new Date(row.week).toISOString().split('T')[0];
+      const existing = map.get(key) || { week: key, contacts: 0, projects: 0 };
+      existing.projects = Number(row.count);
+      map.set(key, existing);
+    }
+    const weeklyData = Array.from(map.values()).sort((a, b) => a.week.localeCompare(b.week));
 
     // Tâches en retard
     const overdueTasks = await prisma.projectTask.count({
