@@ -1,4 +1,6 @@
-'use client';
+import dynamic from 'next/dynamic';
 
-// Render the page entirely on the client to avoid any server-side data collection
-export { default } from './Client';
+// Force client-only rendering to avoid importing client libs on the server during page data collection
+const Client = dynamic(() => import('./Client'), { ssr: false });
+
+export default Client;
